@@ -227,6 +227,13 @@
       margin-bottom: 14px;
     }
 
+    .toolbar.bottom {
+      margin-top: 18px;
+      margin-bottom: 0;
+      padding-top: 12px;
+      border-top: 1px dashed var(--line);
+    }
+
     .toolbar p {
       margin: 0;
     }
@@ -477,6 +484,14 @@
       </div>
       <div class="cards" id="cards"></div>
       <div class="empty" id="emptyState">目前沒有符合條件的據點。可以先清掉部分篩選，或改用國家、城市、機場代碼搜尋。</div>
+      <div class="toolbar bottom">
+        <p id="bottomPageMeta">載入中...</p>
+        <div class="pager">
+          <button type="button" id="bottomPrevPage">‹</button>
+          <span id="bottomPageInfo">第 1 / 1 頁</span>
+          <button type="button" id="bottomNextPage">›</button>
+        </div>
+      </div>
     </section>
 
     <footer>資料來源：Priority Pass Lounge 整理資料 ｜ 更新時間：2026-03-29 19:51 ｜ 本頁為中文整理版，正式權益與最新細節仍以官方頁面為準。</footer>
@@ -524,9 +539,13 @@
       visibleShowers: document.getElementById("visibleShowers"),
       activeFilters: document.getElementById("activeFilters"),
       pageMeta: document.getElementById("pageMeta"),
+      bottomPageMeta: document.getElementById("bottomPageMeta"),
       pageInfo: document.getElementById("pageInfo"),
+      bottomPageInfo: document.getElementById("bottomPageInfo"),
       prevPage: document.getElementById("prevPage"),
       nextPage: document.getElementById("nextPage"),
+      bottomPrevPage: document.getElementById("bottomPrevPage"),
+      bottomNextPage: document.getElementById("bottomNextPage"),
       cards: document.getElementById("cards"),
       emptyState: document.getElementById("emptyState"),
     };
@@ -1122,11 +1141,28 @@
       renderSummary(items);
       const page = paginate(items);
       state.page = page.page;
-      el.pageInfo.textContent = `第 ${page.page} / ${page.totalPages} 頁`;
-      el.pageMeta.textContent = items.length ? `顯示第 ${page.start} 到 ${page.end} 筆，共 ${items.length} 筆。` : "目前沒有資料。";
+      const pageInfoText = `第 ${page.page} / ${page.totalPages} 頁`;
+      const pageMetaText = items.length ? `顯示第 ${page.start} 到 ${page.end} 筆，共 ${items.length} 筆。` : "目前沒有資料。";
+      el.pageInfo.textContent = pageInfoText;
+      el.bottomPageInfo.textContent = pageInfoText;
+      el.pageMeta.textContent = pageMetaText;
+      el.bottomPageMeta.textContent = pageMetaText;
       el.prevPage.disabled = page.page <= 1;
       el.nextPage.disabled = page.page >= page.totalPages;
+      el.bottomPrevPage.disabled = page.page <= 1;
+      el.bottomNextPage.disabled = page.page >= page.totalPages;
       renderCards(page.rows);
+    }
+
+    function goPrevPage() {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      render();
+    }
+
+    function goNextPage() {
+      state.page += 1;
+      render();
     }
 
     function resetFilters() {
@@ -1174,8 +1210,10 @@
     el.searchInput.addEventListener("input", (event) => { state.search = event.target.value.trim(); state.page = 1; render(); });
     el.clearButton.addEventListener("click", resetFilters);
     el.downloadButton.addEventListener("click", downloadCsv);
-    el.prevPage.addEventListener("click", () => { if (state.page > 1) { state.page -= 1; render(); } });
-    el.nextPage.addEventListener("click", () => { state.page += 1; render(); });
+    el.prevPage.addEventListener("click", goPrevPage);
+    el.nextPage.addEventListener("click", goNextPage);
+    el.bottomPrevPage.addEventListener("click", goPrevPage);
+    el.bottomNextPage.addEventListener("click", goNextPage);
 
     render();
   </script>
