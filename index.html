@@ -1154,15 +1154,25 @@
       renderCards(page.rows);
     }
 
+    function scrollToFirstCard() {
+      window.requestAnimationFrame(() => {
+        const target = el.cards.querySelector(".card") || el.cards;
+        const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+        target.scrollIntoView({ behavior, block: "start" });
+      });
+    }
+
     function goPrevPage() {
       if (state.page <= 1) return;
       state.page -= 1;
       render();
+      scrollToFirstCard();
     }
 
     function goNextPage() {
       state.page += 1;
       render();
+      scrollToFirstCard();
     }
 
     function resetFilters() {
