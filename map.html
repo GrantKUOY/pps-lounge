@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PPS Lounge 地圖版｜Priority Pass 全球機場據點</title>
+  <meta name="description" content="Priority Pass 全球機場據點地圖版，支援中文地點、機場代碼、類型與設施篩選，快速查看各機場可用 lounge、餐飲與淋浴整理據點。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./leaflet.css">
+  <link rel="stylesheet" href="./pps-map.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Priority Pass 地圖版</div>
+          <h1>Priority Pass 全球機場據點地圖</h1>
+          <p>把清單版改成「一個點代表一座機場」的方式來看。你可以用國家、城市、類型、設施與關鍵字縮小範圍，再從地圖上快速挑出該機場有哪些 lounge、餐飲或淋浴整理據點。</p>
+        </div>
+        <nav class="view-switch" aria-label="檢視切換">
+          <a href="./index.html">清單版</a>
+          <a class="is-active" href="./map.html" aria-current="page">地圖版</a>
+        </nav>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong id="heroRecordCount">0</strong><span>總據點</span></div>
+        <div class="stat"><strong id="heroAirportCount">0</strong><span>可定位機場</span></div>
+        <div class="stat"><strong id="heroCountryCount">0</strong><span>國家／地區</span></div>
+        <div class="stat"><strong id="heroShowerCount">0</strong><span>含淋浴據點</span></div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel sidebar">
+        <section>
+          <div class="sidebar-head">
+            <div>
+              <h2>地圖篩選</h2>
+              <p>篩選後，地圖只保留仍符合條件的機場標記；同一機場的多個據點會集中在同一個點。</p>
+            </div>
+            <button class="action" type="button" id="clearButton">清除篩選</button>
+          </div>
+        </section>
+
+        <section>
+          <div class="quick-chips" id="quickChips"></div>
+        </section>
+
+        <section class="filters-grid">
+          <div class="field full">
+            <label for="searchInput">關鍵字</label>
+            <input id="searchInput" type="search" placeholder="例如 TPE、Seoul、淋浴、餐飲、Plaza Premium">
+          </div>
+          <div class="field">
+            <label for="countryFilter">國家／地區</label>
+            <select id="countryFilter"></select>
+          </div>
+          <div class="field">
+            <label for="cityFilter">城市</label>
+            <select id="cityFilter"></select>
+          </div>
+          <div class="field">
+            <label for="typeFilter">類型</label>
+            <select id="typeFilter"></select>
+          </div>
+          <div class="field">
+            <label for="facilityFilter">熱門設施</label>
+            <select id="facilityFilter"></select>
+          </div>
+        </section>
+
+        <section>
+          <p id="resultText">正在整理地圖資料...</p>
+          <div class="active-filters" id="activeFilters"></div>
+        </section>
+
+        <section class="summary-grid">
+          <div class="summary-box"><strong id="visibleAirportCount">0</strong><span>目前機場</span></div>
+          <div class="summary-box"><strong id="visibleRecordCount">0</strong><span>目前據點</span></div>
+          <div class="summary-box"><strong id="visibleCountryCount">0</strong><span>目前國家／地區</span></div>
+          <div class="summary-box"><strong id="visibleShowerCount">0</strong><span>目前含淋浴</span></div>
+        </section>
+
+        <section>
+          <div class="sidebar-head">
+            <div>
+              <h3>機場清單</h3>
+              <p class="muted">可先從這裡挑機場，再同步定位到地圖。</p>
+            </div>
+            <span class="meta-tag" id="airportListBadge">前 0 筆</span>
+          </div>
+          <div class="airport-list" id="airportList"></div>
+          <p class="list-note" id="airportListNote"></p>
+        </section>
+      </aside>
+
+      <section class="panel map-shell">
+        <div class="map-head">
+          <div>
+            <h2>全球機場分布</h2>
+            <p id="mapSummary">正在建立標記...</p>
+            <p class="map-error" id="mapError" hidden></p>
+          </div>
+          <div class="legend">
+            <span class="legend-item" style="--legend-color: #0f7b76;">貴賓室</span>
+            <span class="legend-item" style="--legend-color: #df8f36;">餐飲</span>
+            <span class="legend-item" style="--legend-color: #893654;">淋浴／整理</span>
+            <span class="legend-item" style="--legend-color: #29556d;">休息</span>
+            <span class="legend-item" style="--legend-color: #4d6472;">混合類型</span>
+          </div>
+        </div>
+        <div id="map" role="application" aria-label="Priority Pass Lounge 全球機場據點地圖"></div>
+      </section>
+    </section>
+
+    <section class="panel detail-panel">
+      <div class="detail-head">
+        <div>
+          <h2 id="detailTitle">選一個機場看詳情</h2>
+          <p id="detailSubtitle">點地圖標記，或從左側清單點一個機場。</p>
+        </div>
+        <div class="detail-meta" id="detailMeta"></div>
+      </div>
+      <div id="detailContent" class="detail-empty">目前尚未選取機場。你可以先用篩選縮小範圍，再點任一標記查看該機場的據點清單。</div>
+    </section>
+
+    <footer>資料來源：Priority Pass Lounge 整理資料、OurAirports 座標資料 ｜ 更新時間：2026-04-06 07:32 ｜ 本頁為中文整理版，正式權益與最新細節仍以官方頁面為準。</footer>
+  </main>
+
+  <script src="./leaflet.js"></script>
+  <script src="./pps-records.js"></script>
+  <script src="./pps-location-zh.js"></script>
+  <script src="./pps-airport-geo.js"></script>
+  <script src="./pps-map.js"></script>
+</body>
+</html>
