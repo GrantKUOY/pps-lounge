@@ -313,6 +313,47 @@
       text-decoration: none;
     }
 
+    .translated-copy, .raw-text {
+      display: block;
+      white-space: pre-line;
+    }
+
+    .raw-copy {
+      border-top: 1px dashed var(--line);
+      padding-top: 12px;
+    }
+
+    .raw-copy summary {
+      cursor: pointer;
+      color: var(--teal);
+      font-weight: 800;
+      list-style: none;
+    }
+
+    .raw-copy summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .raw-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .raw-section {
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: rgba(31, 47, 57, 0.05);
+      border: 1px solid rgba(31, 47, 57, 0.06);
+    }
+
+    .raw-section small {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
     .empty {
       display: none;
       padding: 28px;
@@ -437,7 +478,7 @@
       <div class="empty" id="emptyState">目前沒有符合條件的據點。可以先清掉部分篩選，或改用國家、城市、機場代碼搜尋。</div>
     </section>
 
-    <footer>資料更新時間：2026-04-07 15:31 ｜ 本頁為中文整理版，正式權益請以 <a href="https://www.prioritypass.com" target="_blank" rel="noopener">prioritypass.com</a> 為準。</footer>
+    <footer>資料更新時間：2026-04-07 15:51 ｜ 本頁為中文整理版，正式權益請以 <a href="https://www.prioritypass.com" target="_blank" rel="noopener">prioritypass.com</a> 為準。</footer>
   </main>
 
   <script>
@@ -490,6 +531,202 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
+
+    const facilityLabels = Object.freeze({
+      "A la carte menu": "單點餐點",
+      "Air conditioning": "空調",
+      "Alcoholic drinks (Premium-brand)": "高級酒精飲品",
+      "Alcoholic drinks (Standard)": "標準酒精飲品",
+      "Conference facilities": "會議空間",
+      "Digital card accepted": "支援電子會員卡",
+      "Disabled access": "無障礙設施",
+      "Flight information": "航班資訊",
+      "Luggage storage": "行李寄放",
+      "Massage chairs": "按摩椅",
+      "Newspapers / magazines": "報章雜誌",
+      "Shoe shine": "擦鞋服務",
+      "Showers": "淋浴間",
+      "Soft drinks": "無酒精飲品",
+      "Telephone": "電話",
+      "Televisions": "電視",
+      "Wi-Fi": "Wi\u2011Fi",
+    });
+
+    const dayLabels = Object.freeze({
+      Monday: "週一", Tuesday: "週二", Wednesday: "週三",
+      Thursday: "週四", Friday: "週五", Saturday: "週六", Sunday: "週日",
+    });
+
+    function replaceWithRules(text, rules) {
+      let result = String(text ?? "");
+      for (const [pattern, replacement] of rules) {
+        result = result.replace(pattern, replacement);
+      }
+      return result;
+    }
+
+    function hasHeavyEnglish(text) {
+      return /[A-Za-z][A-Za-z0-9&'(),./:;+ -]{18,}/.test(String(text ?? ""));
+    }
+
+    function formatMultilineHtml(text) {
+      return escapeHtml(String(text ?? "")).replace(/\r?\n/g, "<br>");
+    }
+
+    function formatFacilityLabel(value) {
+      return facilityLabels[value] || value;
+    }
+
+    function formatTerminalDisplay(value) {
+      if (!value) return "未標示";
+      return replaceWithRules(value, [
+        [/New International Terminal/gi, "新國際航廈"],
+        [/International Terminal/gi, "國際航廈"],
+        [/Domestic Terminal/gi, "國內航廈"],
+        [/Terminal (\d+)/gi, "第$1航廈"],
+        [/Terminal/gi, "航廈"],
+        [/Landside/gi, "管制區外"],
+        [/Airside/gi, "管制區內"],
+      ]).replace(/\s{2,}/g, " ").trim();
+    }
+
+    function formatLocationDisplay(value) {
+      if (!value) return "未提供";
+      return replaceWithRules(value, [
+        [/New International Terminal/gi, "新國際航廈"],
+        [/International Terminal/gi, "國際航廈"],
+        [/Domestic Terminal/gi, "國內航廈"],
+        [/Terminal (\d+)/gi, "第$1航廈"],
+        [/Terminal/gi, "航廈"],
+        [/Landside/gi, "管制區外"],
+        [/Airside/gi, "管制區內"],
+        [/Departure Level/gi, "出發樓層"],
+        [/Arrivals?/gi, "抵達區"],
+      ]).replace(/\s{2,}/g, " ").trim();
+    }
+
+    function translateHoursLine(line) {
+      const value = String(line ?? "").trim();
+      if (!value) return "";
+      const dayMatch = value.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday):\s*(.+)$/i);
+      if (dayMatch) {
+        const dayKey = dayMatch[1][0].toUpperCase() + dayMatch[1].slice(1).toLowerCase();
+        return `${dayLabels[dayKey] || dayMatch[1]}：${translateHoursLine(dayMatch[2])}`;
+      }
+      const noteMatch = value.match(/^Note:\s*(.*)$/i);
+      if (noteMatch) {
+        return noteMatch[1] ? `備註：${translateHoursLine(noteMatch[1])}` : "備註：";
+      }
+      if (/^24 hours daily\.?$/i.test(value)) return "每日 24 小時營業";
+      let result = replaceWithRules(value, [
+        [/THIS LOUNGE IS TEMPORARILY CLOSED UNTIL FURTHER NOTICE\.?/gi, "此貴賓室暫時關閉，恢復開放時間另行公告。"],
+        [/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}) daily\.?/gi, "每日 $1 至 $2"],
+        [/(\d{2}:\d{2})\s*-\s*last flight\.?/gi, "$1 起至末班機前"],
+        [/(\d+) hours? and (\d+) minutes before first flight\s*-\s*(\d+) minutes before last flight\.?/gi, "首班機前 $1 小時 $2 分鐘開放，至末班機前 $3 分鐘"],
+        [/(\d+) hour and (\d+) minutes before first flight\s*-\s*(\d+) minutes before last flight\.?/gi, "首班機前 $1 小時 $2 分鐘開放，至末班機前 $3 分鐘"],
+        [/(\d+) hours? before first flight\s*-\s*(\d+) minutes before last flight\.?/gi, "首班機前 $1 小時開放，至末班機前 $2 分鐘"],
+        [/(\d+) hours? before first flight\s*-\s*last flight\.?/gi, "首班機前 $1 小時開放，至末班機前"],
+        [/Hours may be subject to seasonal changes\.?/gi, "營業時間可能依季節調整。"],
+        [/Food service stops at (\d{2}:\d{2}) daily\.?/gi, "每日餐點供應至 $1。"],
+        [/For Cardholders who pay for individual visits or guest visits, please check this particular offer against your visit fee to ensure it represents value for you\.?/gi, "若本次使用需自費，請先確認此項服務是否符合你的權益價值。"],
+        [/We advise Cardholders to review full Conditions of access below before visiting\.?/gi, "建議先查看完整使用條件後再前往。"],
+        [/Based on scheduled departures/gi, "依表定航班時間調整"],
+        [/Access may be restricted due to space constraints\.?/gi, "若現場客滿，可能限制入場。"],
+        [/Closed 25 Dec\.?/gi, "12 月 25 日休息。"],
+        [/Arrivals not accepted within 1 hour of closing\.?/gi, "距離關閉前 1 小時起不接受抵達旅客。"],
+      ]).replace(/\s{2,}/g, " ").trim();
+      if (hasHeavyEnglish(result)) return "此據點另有營業補充說明，請展開查看原始英文與官方頁面。";
+      return result;
+    }
+
+    function formatOpeningHoursDisplay(value) {
+      if (!value) return "未提供";
+      const translated = [];
+      for (const line of String(value).split(/\r?\n/)) {
+        const item = translateHoursLine(line);
+        if (item && !translated.includes(item)) translated.push(item);
+      }
+      return translated.length ? translated.join("\n") : "未提供";
+    }
+
+    function splitConditionSegments(value) {
+      const source = String(value ?? "").trim();
+      if (!source) return [];
+      if (/\d+\.\s/.test(source)) return source.split(/(?=\d+\.\s)/).map((item) => item.trim()).filter(Boolean);
+      if (source.includes(" - ")) return source.split(/\s+-\s+/).map((item) => item.trim()).filter(Boolean);
+      return source.split(/,\s+(?=[A-Z0-9])/).map((item) => item.trim()).filter(Boolean);
+    }
+
+    function translateConditionSegment(segment) {
+      const cleaned = String(segment ?? "").trim().replace(/^\d+\.\s*/, "");
+      if (!cleaned) return "";
+      let result = replaceWithRules(cleaned, [
+        [/Maximum (\d+) hour stay \(prior to scheduled flight departure time only\)/gi, "最長可停留 $1 小時，且僅限表定起飛前使用"],
+        [/Maximum (\d+) hour stay/gi, "最長可停留 $1 小時"],
+        [/Children under (\d+) years are admitted free/gi, "$1 歲以下兒童可免費入場"],
+        [/Children under (\d+) years admitted free/gi, "$1 歲以下兒童可免費入場"],
+        [/Children under (\d+) years of age are free of charge/gi, "$1 歲以下兒童可免費使用"],
+        [/Children under (\d+) years are not admitted\.?/gi, "$1 歲以下兒童不得入場"],
+        [/Children are not admitted\.?/gi, "不開放兒童入場"],
+        [/All children must be accompanied by an adult\.?/gi, "所有兒童須由成人陪同"],
+        [/No smoking \(including vaping\)/gi, "禁止吸菸與電子煙"],
+        [/No dress code/gi, "無服裝規定"],
+        [/Smart casual dress at all times\.?/gi, "請穿著整潔便服"],
+        [/Access may be restricted due to space constraints\.?/gi, "若現場客滿，可能限制入場。"],
+        [/Quiet area\.?/gi, "設有安靜區"],
+        [/Separate children's play area available\.?/gi, "設有兒童遊戲區。"],
+        [/Separate prayer room available\.?/gi, "設有祈禱室。"],
+        [/Separate prayer room\.?/gi, "設有祈禱室。"],
+        [/Separate smoking room available\.?/gi, "設有吸菸室。"],
+        [/Separate smoking room\.?/gi, "設有吸菸室。"],
+        [/Computer workstations available\.?/gi, "設有電腦工作站。"],
+        [/Workstations available\.?/gi, "設有工作區。"],
+        [/Complimentary massage chairs available\.?/gi, "提供免費按摩椅。"],
+        [/Only coffee, tea, fresh juices and water available \(no soft drinks\)\.?/gi, "僅提供咖啡、茶、新鮮果汁與飲用水，不提供汽水。"],
+        [/All food and beverages must be consumed inside the lounge\.?/gi, "餐飲僅限於貴賓室內享用。"],
+        [/Complimentary drinks are limited to one per person\.?/gi, "每人免費飲品以 1 杯為限。"],
+        [/Complimentary alcoholic drinks are limited to three per adult\.?/gi, "每位成人免費酒精飲品以 3 杯為限。"],
+        [/Alcoholic drinks are limited to local beer or wine only\.?/gi, "酒精飲品僅限當地啤酒或葡萄酒。"],
+        [/This location is offered as an alternative to a lounge visit and other airport experiences\.?/gi, "此據點屬於替代型機場體驗。"],
+        [/Using entitlements repeatedly within a single airport trip may result in charges from your benefit provider\.?/gi, "同一趟機場行程內重複使用權益，可能由權益提供方另外計費。"],
+        [/Cardholders can use their lounge visit entitlement to take advantage of one of the following options:?/gi, "持卡人可使用一次貴賓室權益兌換下列其中一項服務："],
+        [/Cardholders may NOT register Guests\.?/gi, "不得登記同行賓客。"],
+        [/To be eligible, Cardholders must present a valid Card and Boarding Pass with confirmed same-day travel before placing an order\.?/gi, "使用前須出示有效卡片與當日登機證。"],
+        [/To be eligible, Cardholders must present a valid Card and Boarding Pass with confirmed same-day travel before selecting a treatment\.?/gi, "使用服務前須出示有效卡片與當日登機證。"],
+        [/Cardholder is responsible for all additional charges incurred\.?/gi, "額外產生的費用須自行支付。"],
+      ]).replace(/\s{2,}/g, " ").trim();
+      if (hasHeavyEnglish(result) || !/[\u4e00-\u9fff]/.test(result)) {
+        if (/massage|spa|hair|nails|eyebrow|treatment|US\$/i.test(cleaned))
+          return "提供額外服務項目，細節請展開查看原始英文與官方頁面。";
+        if (/bill|credit|meal|drinks|transaction|gratuity|Cardholders?/i.test(cleaned))
+          return "此據點含餐飲或權益折抵規則，細節請展開查看原始英文與官方頁面。";
+        return "此據點另有使用限制，細節請展開查看原始英文與官方頁面。";
+      }
+      return result;
+    }
+
+    function formatConditionsDisplay(value) {
+      if (!value) return "未提供";
+      const translated = [];
+      for (const segment of splitConditionSegments(value)) {
+        const item = translateConditionSegment(segment);
+        if (item && !translated.includes(item)) translated.push(item);
+      }
+      return translated.length ? translated.join("\n") : "未提供";
+    }
+
+    function getDisplayRecord(record) {
+      if (!record._displayCache) {
+        record._displayCache = {
+          location: formatLocationDisplay(record.location),
+          terminal: formatTerminalDisplay(record.terminal),
+          openingHours: formatOpeningHoursDisplay(record.openingHours),
+          conditions: formatConditionsDisplay(record.conditions),
+          facilities: record.facilities.map(formatFacilityLabel),
+        };
+      }
+      return record._displayCache;
+    }
 
     function unique(values, ordered = []) {
       const seen = new Set();
@@ -673,14 +910,16 @@
       }
       el.emptyState.style.display = "none";
       el.cards.innerHTML = items.map((record) => {
-        const facilities = record.facilities.length
-          ? record.facilities.map((item) => `<span class="facility-chip">${escapeHtml(item)}</span>`).join("")
+        const display = getDisplayRecord(record);
+        const facilities = display.facilities.length
+          ? display.facilities.map((item) => `<span class="facility-chip">${escapeHtml(item)}</span>`).join("")
           : `<span class="facility-chip">未提供設施</span>`;
         const link = record.url ? `<a href="${escapeHtml(record.url)}" target="_blank" rel="noreferrer noopener">開啟官方頁面 ↗</a>` : "";
-        const terminal = record.terminal || "未標示";
-        const conditions = record.conditions || "未提供";
-        const hours = record.openingHours || "未提供";
-        const location = record.location || "未提供";
+        const rawSections = [
+          record.openingHours ? `<div class="raw-section"><small>營業時間原文</small><p class="raw-text">${formatMultilineHtml(record.openingHours)}</p></div>` : "",
+          record.conditions ? `<div class="raw-section"><small>使用條件原文</small><p class="raw-text">${formatMultilineHtml(record.conditions)}</p></div>` : "",
+        ].filter(Boolean).join("");
+        const rawCopy = rawSections ? `<details class="raw-copy"><summary>查看原始英文</summary><div class="raw-grid">${rawSections}</div></details>` : "";
         return `
           <article class="card">
             <div class="card-head">
@@ -696,14 +935,15 @@
               ${link}
             </div>
             <div class="subgrid">
-              <div class="subbox"><small>位置</small><strong>${escapeHtml(location)}</strong></div>
-              <div class="subbox"><small>航廈</small><strong>${escapeHtml(terminal)}</strong></div>
-              <div class="subbox"><small>營業時間</small><strong>${escapeHtml(hours)}</strong></div>
+              <div class="subbox"><small>位置</small><strong>${formatMultilineHtml(display.location)}</strong></div>
+              <div class="subbox"><small>航廈</small><strong>${formatMultilineHtml(display.terminal)}</strong></div>
+              <div class="subbox"><small>營業時間</small><strong>${formatMultilineHtml(display.openingHours)}</strong></div>
               <div class="subbox"><small>機場代碼</small><strong>${escapeHtml(record.airportCode)}</strong></div>
             </div>
             <div>
-              <p class="muted"><strong>使用條件</strong><br>${escapeHtml(conditions)}</p>
+              <p class="muted"><strong>使用條件</strong><br><span class="translated-copy">${formatMultilineHtml(display.conditions)}</span></p>
             </div>
+            ${rawCopy}
             <div class="facility-list">${facilities}</div>
           </article>
         `;
@@ -748,7 +988,7 @@
       const text = [
         headers.join(","),
         ...rows.map((record) => headers.map((key) => csvEscape(key === "facilities" ? record.facilities.join(" | ") : record[key])).join(",")),
-      ].join("\r\n");
+      ].join("\\r\\n");
       const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
