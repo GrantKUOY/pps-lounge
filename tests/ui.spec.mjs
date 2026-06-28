@@ -51,6 +51,25 @@ test("資料載入失敗時提供重試操作", async ({ page }) => {
   await expect(page.getByRole("button", { name: "重新載入資料" })).toBeVisible();
 });
 
+test("手機主要互動元件高度至少 44px", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/");
+  await expect(page.getByLabel("搜尋機場")).toBeEnabled();
+  const undersized = await page.locator("button:visible, input:visible, select:visible").evaluateAll(
+    (elements) =>
+      elements
+        .map((element) => ({
+          label:
+            element.getAttribute("aria-label") ||
+            element.textContent?.trim() ||
+            element.id,
+          height: element.getBoundingClientRect().height,
+        }))
+        .filter(({ height }) => height < 44),
+  );
+  expect(undersized).toEqual([]);
+});
+
 for (const viewport of viewports) {
   test(`${viewport.name} 無水平溢出`, async ({ page }) => {
     await page.setViewportSize(viewport);
