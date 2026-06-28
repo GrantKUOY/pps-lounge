@@ -70,6 +70,19 @@ test("手機主要互動元件高度至少 44px", async ({ page }) => {
   expect(undersized).toEqual([]);
 });
 
+test("鍵盤可完成搜尋並開關進階篩選", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").focus();
+  await page.keyboard.type("TPE");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#results")).toContainText("TPE");
+  await page.getByRole("button", { name: "進階篩選" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#filters")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#filters")).toBeHidden();
+});
+
 for (const viewport of viewports) {
   test(`${viewport.name} 無水平溢出`, async ({ page }) => {
     await page.setViewportSize(viewport);
