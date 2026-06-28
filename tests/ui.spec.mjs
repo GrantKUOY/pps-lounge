@@ -29,6 +29,9 @@ test("TPE 搜尋、進階篩選與詳情流程", async ({ page }) => {
   }).click();
   await expect(page.locator("#detail")).toBeVisible();
   await expect(page.locator("#detail")).toContainText("原始英文");
+  await expect(
+    page.getByRole("link", { name: "開啟 Priority Pass 官方頁面" }),
+  ).toHaveAttribute("href", /my\.prioritypass\.com\/.+\/tpe/);
   expect(errors).toEqual([]);
 });
 

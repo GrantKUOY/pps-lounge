@@ -22,7 +22,8 @@ python3 -m http.server 4173
 
 ## 資料
 
-正式資料由執行基準頁面抽出：
+正式資料由執行基準頁面抽出；若基準頁面的官方網址為空，抽取程式會以
+`pps-records.js` 中可唯一匹配的紀錄補齊，不會覆蓋既有網址或猜測重複紀錄：
 
 ```bash
 npm run extract
@@ -32,7 +33,7 @@ npm run validate
 預期結果：
 
 ```text
-wrote 1754 rows
+wrote 1754 rows; backfilled 17 URLs
 validated 1754 rows across 752 airports
 ```
 
