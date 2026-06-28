@@ -5,6 +5,10 @@
   "scripts": {
     "extract": "node scripts/extract-live-data.mjs .baseline/index.production.html",
     "validate": "node scripts/validate-data.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "test:ui": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

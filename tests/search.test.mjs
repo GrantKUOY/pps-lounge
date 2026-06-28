@@ -47,6 +47,22 @@ test("精確機場代碼結果優先", () => {
   assert.equal(searchRecords(indexed, "TPE")[0].airportCode, "TPE");
 });
 
+test("有效三碼機場代碼不會誤中 accepted 等英文子字串", () => {
+  const trap = createSearchIndex([
+    rows[1],
+    {
+      ...rows[2],
+      airportCode: "MPL",
+      city: "Montpellier",
+      searchText: "montpellier digital card accepted",
+    },
+  ]);
+  assert.deepEqual(
+    searchRecords(trap, "TPE").map((row) => row.airportCode),
+    ["TPE"],
+  );
+});
+
 test("中文搜尋別名可找到機場", () => {
   assert.deepEqual(
     searchRecords(indexed, "桃園").map((row) => row.airportCode),

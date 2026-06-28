@@ -26,6 +26,12 @@ export function createSearchIndex(rows) {
 export function searchRecords(rows, query) {
   const normalizedQuery = normalize(query);
   if (!normalizedQuery) return [...rows];
+  if (/^[a-z0-9]{3}$/.test(normalizedQuery)) {
+    const exactAirport = rows.filter(
+      (row) => row._searchCode === normalizedQuery,
+    );
+    if (exactAirport.length) return exactAirport;
+  }
 
   return rows
     .map((row) => {
