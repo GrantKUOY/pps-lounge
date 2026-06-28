@@ -1,2 +1,6 @@
 # Local Vercel linkage and cache files
 .vercel
+.baseline/
+node_modules/
+playwright-report/
+test-results/
