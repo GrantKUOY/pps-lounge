@@ -1,0 +1,25 @@
+[
+  {
+    "country": "Iceland",
+    "city": "Reykjavík",
+    "airportCode": "KEF",
+    "airportName": "Keflavík International Airport",
+    "type": "EAT",
+    "typeLabel": "餐飲",
+    "name": "Elda",
+    "location": "Reykjavik Keflavik International, Terminal",
+    "openingHours": "Monday 04:00 - 20:10\nTuesday - Thursday 04:00 - 23:40\nFriday 04:00 - 19:55\nSaturday - Sunday 04:00 - 23:40",
+    "conditions": "Cardholders can use one lounge visit entitlement to receive ISK3,350 off one meal and/or drinks transaction. A valid Priority Pass card and same-day boarding pass are required. The Cardholder must pay any balance above the credit; unused credit is non-transferable and cannot be refunded. Repeated use during one airport trip may result in charges from the benefit provider.",
+    "facilities": [
+      "Alcoholic drinks (Standard)",
+      "Digital card accepted",
+      "Soft drinks",
+      "Wi-Fi"
+    ],
+    "terminal": "",
+    "url": "https://www.prioritypass.com/en-GB/lounges/iceland/keflavik-international/kef1d-elda",
+    "isAsia": false,
+    "isEurope": true,
+    "searchText": "iceland reykjavík kef keflavík international airport elda reykjavik keflavik international terminal monday 04:00 20:10 tuesday thursday 04:00 23:40 friday 04:00 19:55 saturday sunday 04:00 23:40 alcoholic drinks digital card accepted soft drinks wi-fi 雷克雅維克 冰島"
+  }
+]

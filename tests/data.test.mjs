@@ -14,12 +14,12 @@ function identityKey(row) {
   return identityFields.map((field) => row[field] ?? "").join("\0");
 }
 
-test("正式資料固定為 1754 筆且必要欄位存在", async () => {
+test("正式資料固定為 1755 筆且必要欄位存在", async () => {
   const rows = JSON.parse(
     await readFile(new URL("../data/lounges.json", import.meta.url), "utf8"),
   );
 
-  assert.equal(rows.length, 1754);
+  assert.equal(rows.length, 1755);
   for (const row of rows) {
     assert.match(row.airportCode, /^[A-Z0-9]{3}$/);
     assert.equal(typeof row.airportName, "string");
@@ -27,6 +27,24 @@ test("正式資料固定為 1754 筆且必要欄位存在", async () => {
     assert.equal(typeof row.searchText, "string");
     assert.ok(Array.isArray(row.facilities));
   }
+});
+
+test("冰島 KEF 餐飲據點包含 Jomfruin 與 Elda", async () => {
+  const rows = JSON.parse(
+    await readFile(new URL("../data/lounges.json", import.meta.url), "utf8"),
+  );
+  const kefDining = rows
+    .filter((row) => row.airportCode === "KEF" && row.type === "EAT")
+    .sort((left, right) => left.name.localeCompare(right.name));
+
+  assert.deepEqual(
+    kefDining.map((row) => row.name),
+    ["Elda", "Jomfruin"],
+  );
+  assert.equal(
+    kefDining.find((row) => row.name === "Elda")?.url,
+    "https://www.prioritypass.com/en-GB/lounges/iceland/keflavik-international/kef1d-elda",
+  );
 });
 
 test("產出資料保留原始資料中可唯一匹配的官方網址", async () => {

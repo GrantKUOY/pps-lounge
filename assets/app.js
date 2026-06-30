@@ -224,7 +224,7 @@ async function loadData() {
     const response = await fetch("data/lounges.json", { cache: "no-cache" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const rows = await response.json();
-    if (!Array.isArray(rows) || rows.length !== 1754) throw new Error("資料筆數不符");
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error("資料內容不符");
     state.rows = createSearchIndex(rows);
     populateFilters();
     renderRecent();

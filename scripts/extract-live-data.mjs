@@ -2,10 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const source = process.argv[2];
 const supplementalSource = process.argv[3];
+const manualAdditionsSource = process.argv[4];
 
-if (!source || !supplementalSource) {
+if (!source || !supplementalSource || !manualAdditionsSource) {
   throw new Error(
-    "usage: node scripts/extract-live-data.mjs <html> <pps-records.js>",
+    "usage: node scripts/extract-live-data.mjs <html> <pps-records.js> <manual-additions.json>",
   );
 }
 
@@ -69,6 +70,25 @@ for (const row of rows) {
   }
 }
 
+const manualAdditions = JSON.parse(
+  await readFile(manualAdditionsSource, "utf8"),
+);
+if (!Array.isArray(manualAdditions)) {
+  throw new Error("manual additions must be an array");
+}
+
+const existingIdentities = new Set(rows.map(identityKey));
+let addedRows = 0;
+for (const row of manualAdditions) {
+  const key = identityKey(row);
+  if (existingIdentities.has(key)) continue;
+  rows.push(row);
+  existingIdentities.add(key);
+  addedRows += 1;
+}
+
 await mkdir("data", { recursive: true });
 await writeFile("data/lounges.json", `${JSON.stringify(rows)}\n`, "utf8");
-console.log(`wrote ${rows.length} rows; backfilled ${backfilledUrls} URLs`);
+console.log(
+  `wrote ${rows.length} rows; backfilled ${backfilledUrls} URLs; added ${addedRows} manually verified rows`,
+);
