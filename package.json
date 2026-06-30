@@ -1,0 +1,9 @@
+{
+  "name": "pps-lounge-production",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hotfix:data": "node scripts/apply-production-data-hotfix.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
