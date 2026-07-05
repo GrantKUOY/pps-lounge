@@ -3,10 +3,16 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 const source = process.argv[2];
 const supplementalSource = process.argv[3];
 const manualAdditionsSource = process.argv[4];
+const manualRemovalsSource = process.argv[5];
 
-if (!source || !supplementalSource || !manualAdditionsSource) {
+if (
+  !source ||
+  !supplementalSource ||
+  !manualAdditionsSource ||
+  !manualRemovalsSource
+) {
   throw new Error(
-    "usage: node scripts/extract-live-data.mjs <html> <pps-records.js> <manual-additions.json>",
+    "usage: node scripts/extract-live-data.mjs <html> <pps-records.js> <manual-additions.json> <manual-removals.json>",
   );
 }
 
@@ -19,7 +25,7 @@ if (!match) {
   throw new Error("records payload not found");
 }
 
-const rows = JSON.parse(match[1]);
+let rows = JSON.parse(match[1]);
 
 if (rows.length !== 1754) {
   throw new Error(`expected 1754 rows, got ${rows.length}`);
@@ -70,6 +76,66 @@ for (const row of rows) {
   }
 }
 
+function canonicalizeOfficialUrl(url) {
+  return String(url ?? "").replace(
+    "https://my.prioritypass.com/en-GB/lounges/taiwan/",
+    "https://www.prioritypass.com/en-GB/lounges/taiwan-region/",
+  );
+}
+
+function rowSlug(row) {
+  if (!row.url) return "";
+  return new URL(row.url).pathname.split("/").at(-1);
+}
+
+for (const row of rows) {
+  if (row.airportCode === "TPE") {
+    row.url = canonicalizeOfficialUrl(row.url);
+  }
+}
+
+const manualRemovals = JSON.parse(
+  await readFile(manualRemovalsSource, "utf8"),
+);
+if (!Array.isArray(manualRemovals)) {
+  throw new Error("manual removals must be an array");
+}
+const removalFields = [
+  "airportCode",
+  "type",
+  "name",
+  "slug",
+  "source",
+  "reason",
+];
+const removalSlugs = new Set();
+for (const removal of manualRemovals) {
+  for (const field of removalFields) {
+    if (typeof removal[field] !== "string" || !removal[field].trim()) {
+      throw new Error(`manual removal ${field} must be a non-empty string`);
+    }
+  }
+  if (removalSlugs.has(removal.slug)) {
+    throw new Error(`duplicate manual removal slug: ${removal.slug}`);
+  }
+  const matches = rows.filter(
+    (row) =>
+      rowSlug(row) === removal.slug &&
+      row.airportCode === removal.airportCode &&
+      row.type === removal.type &&
+      row.name === removal.name,
+  );
+  if (matches.length !== 1) {
+    throw new Error(
+      `manual removal ${removal.slug} must match exactly one row, got ${matches.length}`,
+    );
+  }
+  removalSlugs.add(removal.slug);
+}
+const originalCount = rows.length;
+rows = rows.filter((row) => !removalSlugs.has(rowSlug(row)));
+const removedRows = originalCount - rows.length;
+
 const manualAdditions = JSON.parse(
   await readFile(manualAdditionsSource, "utf8"),
 );
@@ -90,5 +156,5 @@ for (const row of manualAdditions) {
 await mkdir("data", { recursive: true });
 await writeFile("data/lounges.json", `${JSON.stringify(rows)}\n`, "utf8");
 console.log(
-  `wrote ${rows.length} rows; backfilled ${backfilledUrls} URLs; added ${addedRows} manually verified rows`,
+  `wrote ${rows.length} rows; backfilled ${backfilledUrls} URLs; removed ${removedRows}; added ${addedRows} manually verified rows`,
 );

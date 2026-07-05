@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "extract": "node scripts/extract-live-data.mjs .baseline/index.production.html pps-records.js data/manual-additions.json",
+    "extract": "node scripts/extract-live-data.mjs .baseline/index.production.html pps-records.js data/manual-additions.json data/manual-removals.json",
     "validate": "node scripts/validate-data.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:ui": "playwright test"

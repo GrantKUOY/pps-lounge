@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 const rows = JSON.parse(await readFile("data/lounges.json", "utf8"));
 const errors = [];
 
-if (rows.length !== 1755) {
-  errors.push(`expected 1755 rows, got ${rows.length}`);
+if (rows.length !== 1754) {
+  errors.push(`expected 1754 rows, got ${rows.length}`);
 }
 
 for (const [index, row] of rows.entries()) {
