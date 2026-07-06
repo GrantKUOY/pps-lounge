@@ -15,6 +15,10 @@ import {
   searchRecords,
   sortRecords,
 } from "./search.js";
+import {
+  airportOverview,
+  resultRowHtml,
+} from "./presentation.js";
 import { readRecent, writeRecent } from "./storage.js";
 
 const state = {
@@ -33,12 +37,14 @@ const state = {
 const el = Object.fromEntries(
   [
     "search", "clear-search", "suggestions", "recent-wrap", "recent-searches",
-    "result-summary", "loading-state", "error-state", "empty-state", "results",
+    "results-title", "result-summary", "loading-state", "error-state",
+    "empty-state", "results",
     "prev-page", "next-page", "page-info", "open-filters", "filters",
     "filter-form", "country-filter", "city-filter", "type-filter",
     "facility-filter", "sort-filter", "page-size-filter", "clear-filters",
     "empty-clear", "retry-button", "download-button", "detail", "detail-content",
     "close-detail", "close-detail-icon",
+    "airport-overview", "overview-code", "overview-name", "overview-meta",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
@@ -115,32 +121,22 @@ function renderSuggestions() {
   el.suggestions.hidden = airports.length === 0;
 }
 
-function cardHtml(row) {
-  const priorityFacilities = ["Showers", "Wi-Fi", "Flight information"];
-  const visibleFacilities = [
-    ...priorityFacilities.filter((item) => row.facilities.includes(item)),
-    ...row.facilities.filter((item) => !priorityFacilities.includes(item)),
-  ].slice(0, 5);
-  const facilities = visibleFacilities
-    .map((item) => `<span class="facility">${escapeHtml(formatFacility(item))}</span>`)
-    .join("");
-  return `<article class="result-card">
-    <div class="card-top"><span class="airport-code">${escapeHtml(row.airportCode)}</span><span class="type-badge">${escapeHtml(row.typeLabel)}</span></div>
-    <h3>${escapeHtml(row.name)}</h3>
-    <p class="subline">${escapeHtml(row.country)} · ${escapeHtml(row.city)} · ${escapeHtml(row.airportName)}</p>
-    <div class="meta-grid">
-      <div class="meta-box"><span>位置／航廈</span><strong>${escapeHtml(formatTerminal(row.terminal || row.location))}</strong></div>
-      <div class="meta-box"><span>營業時間</span><strong>${escapeHtml(formatOpeningHours(row.openingHours).split("\n")[0])}</strong></div>
-    </div>
-    <div class="facility-list">${facilities || '<span class="facility">未提供設施</span>'}</div>
-    <button class="secondary-button card-action" type="button" data-detail="${row._searchOrder}">查看詳情</button>
-  </article>`;
-}
-
 function computeRows() {
   const searched = searchRecords(state.rows, state.query);
   const filtered = filterRecords(searched, state.filters);
   return sortRecords(filtered, state.query && state.sort === "relevance" ? "relevance" : state.sort);
+}
+
+function renderAirportOverview(items) {
+  const overview = airportOverview(items, state.query);
+  el["airport-overview"].hidden = !overview;
+  if (!overview) return;
+
+  el["overview-code"].textContent = overview.code;
+  el["overview-name"].textContent = overview.airportName;
+  el["overview-meta"].textContent =
+    `${overview.count} 個據點 · ${overview.terminalCount} 座航廈 · ` +
+    `${overview.loungeCount} 間貴賓室 · ${overview.diningCount} 個餐飲權益`;
 }
 
 function render() {
@@ -152,9 +148,10 @@ function render() {
   if (state.loading || state.error) return;
 
   state.currentRows = computeRows();
+  renderAirportOverview(state.currentRows);
   const page = paginate(state.currentRows, state.page, state.pageSize);
   state.page = page.page;
-  el.results.innerHTML = page.rows.map(cardHtml).join("");
+  el.results.innerHTML = page.rows.map(resultRowHtml).join("");
   el["empty-state"].hidden = state.currentRows.length > 0;
   el["result-summary"].textContent = state.currentRows.length
     ? `顯示第 ${page.start}–${page.end} 筆，共 ${page.totalItems} 筆結果。`

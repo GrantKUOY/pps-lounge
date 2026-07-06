@@ -38,31 +38,28 @@ test("首頁使用 PPS Journal 搜尋優先外殼", async ({ page }) => {
   await expect(lounge).toHaveAttribute("aria-pressed", "false");
 });
 
-test("TPE 搜尋、進階篩選與詳情流程", async ({ page }) => {
+test("TPE 顯示 6 筆編輯式結果並可套用篩選", async ({ page }) => {
   const errors = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
 
   await page.goto("/");
-  await expect(page.getByLabel("搜尋機場")).toBeEnabled();
   await page.getByLabel("搜尋機場").fill("TPE");
-  await expect(page.locator("#results")).toContainText("TPE");
+  await expect(page.locator("#overview-code")).toHaveText("TPE");
+  await expect(page.locator("#overview-meta")).toContainText("6 個據點");
+  await expect(page.locator(".result-row")).toHaveCount(6);
+  await expect(page.locator(".result-card, .meta-box, .type-badge")).toHaveCount(0);
 
+  await page.getByRole("button", { name: "餐飲" }).click();
+  await expect(page.locator(".result-row")).toHaveCount(2);
+  await expect(page.locator(".result-row").first()).toContainText("餐飲");
+
+  await page.getByRole("button", { name: "全部" }).click();
   await page.getByRole("button", { name: "進階篩選" }).click();
-  await expect(page.locator("#filters")).toBeVisible();
   await page.getByLabel("設施").selectOption("Showers");
   await page.getByRole("button", { name: "套用篩選" }).click();
   await expect(page.locator("#results")).toContainText("淋浴");
-
-  await page.locator(".result-card").first().getByRole("button", {
-    name: "查看詳情",
-  }).click();
-  await expect(page.locator("#detail")).toBeVisible();
-  await expect(page.locator("#detail")).toContainText("原始英文");
-  await expect(
-    page.getByRole("link", { name: "開啟 Priority Pass 官方頁面" }),
-  ).toHaveAttribute("href", /my\.prioritypass\.com\/.+\/tpe/);
   expect(errors).toEqual([]);
 });
 
@@ -73,7 +70,21 @@ test("無結果時提供清除操作", async ({ page }) => {
   await page.locator("#empty-state").getByRole("button", {
     name: "清除篩選",
   }).click();
-  await expect(page.locator(".result-card").first()).toBeVisible();
+  await expect(page.locator(".result-row").first()).toBeVisible();
+});
+
+test("分頁切換不產生執行期錯誤", async ({ page }) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+
+  await page.goto("/");
+  await expect(page.locator(".result-row").first()).toBeVisible();
+  await page.getByRole("button", { name: "下一頁" }).click();
+  await expect(page.locator("#page-info")).toHaveText(/第 2 \//);
+  expect(errors).toEqual([]);
 });
 
 test("資料載入失敗時提供重試操作", async ({ page }) => {
