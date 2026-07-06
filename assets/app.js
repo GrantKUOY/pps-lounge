@@ -1,12 +1,7 @@
 import { downloadCsv } from "./csv.js";
 import {
   escapeHtml,
-  formatConditions,
   formatFacility,
-  formatLocation,
-  formatOpeningHours,
-  formatTerminal,
-  safeExternalUrl,
 } from "./formatters.js";
 import {
   createSearchIndex,
@@ -17,6 +12,7 @@ import {
 } from "./search.js";
 import {
   airportOverview,
+  detailHtml,
   resultRowHtml,
 } from "./presentation.js";
 import { readRecent, writeRecent } from "./storage.js";
@@ -40,7 +36,7 @@ const el = Object.fromEntries(
     "results-title", "result-summary", "loading-state", "error-state",
     "empty-state", "results",
     "prev-page", "next-page", "page-info", "open-filters", "filters",
-    "filter-form", "country-filter", "city-filter", "type-filter",
+    "close-filters", "filter-form", "country-filter", "city-filter", "type-filter",
     "facility-filter", "sort-filter", "page-size-filter", "clear-filters",
     "empty-clear", "retry-button", "download-button", "detail", "detail-content",
     "close-detail", "close-detail-icon",
@@ -49,6 +45,7 @@ const el = Object.fromEntries(
 );
 
 let searchTimer;
+let detailTrigger = null;
 
 function unique(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) =>
@@ -170,14 +167,21 @@ function syncQuickFilterState(type) {
   });
 }
 
+function syncFilterControls() {
+  el["country-filter"].value = state.filters.country;
+  el["city-filter"].value = state.filters.city;
+  el["type-filter"].value = state.filters.type;
+  el["facility-filter"].value = state.filters.facility;
+  el["sort-filter"].value = state.sort;
+  el["page-size-filter"].value = String(state.pageSize);
+}
+
 function resetFilters() {
   state.filters = { country: "", city: "", type: "", facility: "" };
   state.sort = "relevance";
   state.page = 1;
   state.pageSize = 24;
-  for (const id of ["country-filter", "city-filter", "type-filter", "facility-filter"]) el[id].value = "";
-  el["sort-filter"].value = "relevance";
-  el["page-size-filter"].value = "24";
+  syncFilterControls();
   syncQuickFilterState("");
   render();
 }
@@ -193,31 +197,20 @@ function setQuery(query, remember = false) {
   render();
 }
 
-function showDetail(index) {
+function showDetail(index, trigger) {
   const row = state.rows.find((item) => item._searchOrder === Number(index));
   if (!row) return;
   state.selected = row;
-  const officialUrl = safeExternalUrl(row.url);
-  const facilities = row.facilities
-    .map((item) => `<span class="facility">${escapeHtml(formatFacility(item))}</span>`)
-    .join("");
-  el["detail-content"].innerHTML = `
-    <header class="detail-hero">
-      <span class="airport-code">${escapeHtml(row.airportCode)}</span>
-      <h2>${escapeHtml(row.name)}</h2>
-      <p class="subline">${escapeHtml(row.country)} · ${escapeHtml(row.city)} · ${escapeHtml(row.airportName)}</p>
-    </header>
-    <section class="detail-section"><h3>位置</h3><p>${escapeHtml(formatLocation(row.location))}\n${escapeHtml(formatTerminal(row.terminal))}</p></section>
-    <section class="detail-section"><h3>營業時間</h3><p>${escapeHtml(formatOpeningHours(row.openingHours))}</p></section>
-    <section class="detail-section"><h3>使用條件</h3><p>${escapeHtml(formatConditions(row.conditions))}</p></section>
-    <section class="detail-section"><h3>設施</h3><div class="facility-list">${facilities || '<span class="facility">未提供</span>'}</div></section>
-    <details class="raw-copy"><summary>查看原始英文</summary>
-      <section class="detail-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></section>
-      <section class="detail-section"><h3>Conditions</h3><p>${escapeHtml(row.conditions || "Not provided")}</p></section>
-    </details>
-    ${officialUrl ? `<a class="official-link" href="${escapeHtml(officialUrl)}" target="_blank" rel="noreferrer noopener">開啟 Priority Pass 官方頁面 ↗</a>` : ""}
-  `;
+  detailTrigger = trigger;
+  el.detail.setAttribute("aria-label", `${row.name} 詳情`);
+  el["close-detail"].textContent = `← 返回 ${row.airportCode} 的搜尋結果`;
+  el["detail-content"].innerHTML = detailHtml(row);
   el.detail.showModal();
+  el["close-detail"].focus();
+}
+
+function closeDetail() {
+  el.detail.close();
 }
 
 async function loadData() {
@@ -261,7 +254,14 @@ el["recent-searches"].addEventListener("click", (event) => {
   const button = event.target.closest("[data-recent]");
   if (button) setQuery(button.dataset.recent);
 });
-el["open-filters"].addEventListener("click", () => el.filters.showModal());
+el["open-filters"].addEventListener("click", () => {
+  syncFilterControls();
+  el.filters.showModal();
+});
+el["close-filters"].addEventListener("click", () => {
+  syncFilterControls();
+  el.filters.close();
+});
 el["filter-form"].addEventListener("submit", () => {
   state.filters = {
     country: el["country-filter"].value,
@@ -294,10 +294,11 @@ el["next-page"].addEventListener("click", () => {
 });
 el.results.addEventListener("click", (event) => {
   const button = event.target.closest("[data-detail]");
-  if (button) showDetail(button.dataset.detail);
+  if (button) showDetail(button.dataset.detail, button);
 });
-el["close-detail"].addEventListener("click", () => el.detail.close());
-el["close-detail-icon"].addEventListener("click", () => el.detail.close());
+el["close-detail"].addEventListener("click", closeDetail);
+el["close-detail-icon"].addEventListener("click", closeDetail);
+el.detail.addEventListener("close", () => detailTrigger?.focus());
 el["download-button"].addEventListener("click", () => {
   if (!state.currentRows.length) return window.alert("目前沒有可匯出的資料。");
   downloadCsv(state.currentRows);

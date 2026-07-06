@@ -83,12 +83,13 @@
     </section>
   </main>
 
-  <dialog id="filters" class="sheet">
+  <dialog id="filters" class="sheet" aria-labelledby="filters-title">
     <form method="dialog" class="sheet-panel" id="filter-form">
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="sheet-header">
-        <h2>進階篩選</h2>
-        <button class="icon-button" value="cancel" aria-label="關閉篩選">×</button>
+        <h2 id="filters-title">進階篩選</h2>
+        <button id="close-filters" class="icon-button" type="button"
+          aria-label="關閉篩選">×</button>
       </div>
       <div class="filter-grid">
         <label>國家／地區<select id="country-filter"><option value="">全部國家／地區</option></select></label>
@@ -114,10 +115,10 @@
     </form>
   </dialog>
 
-  <dialog id="detail" class="detail-dialog">
+  <dialog id="detail" class="detail-dialog" aria-label="據點詳情">
     <article class="detail-panel">
-      <div class="sheet-header">
-        <button id="close-detail" class="back-button" type="button">‹ 返回結果</button>
+      <div class="detail-toolbar">
+        <button id="close-detail" class="back-button" type="button">← 返回搜尋結果</button>
         <button id="close-detail-icon" class="icon-button" type="button" aria-label="關閉詳情">×</button>
       </div>
       <div id="detail-content"></div>

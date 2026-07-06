@@ -63,6 +63,66 @@ test("TPE 顯示 6 筆編輯式結果並可套用篩選", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("詳情採資料列、使用現行官方網址並回復焦點", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  const trigger = page.locator(".result-row").filter({
+    hasText: "Oriental Club Lounge",
+  }).getByRole("button", { name: "查看詳情" });
+  await trigger.click();
+
+  const detail = page.getByRole("dialog", {
+    name: "Oriental Club Lounge 詳情",
+  });
+  await expect(detail).toBeVisible();
+  await expect(page.getByRole("button", {
+    name: "返回 TPE 的搜尋結果",
+  })).toBeFocused();
+  await expect(page.locator(".detail-fact")).toHaveCount(4);
+  await expect(page.locator(".detail-section, .meta-box")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "開啟 Priority Pass 官方頁面" }),
+  ).toHaveAttribute(
+    "href",
+    "https://www.prioritypass.com/en-GB/lounges/taiwan-region/taiwan-taoyuan-international/tpe9-oriental-club-lounge",
+  );
+
+  await page.getByRole("button", { name: "返回 TPE 的搜尋結果" }).click();
+  await expect(detail).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await page.getByRole("button", { name: "關閉詳情" }).click();
+  await expect(detail).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await page.keyboard.press("Escape");
+  await expect(detail).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("關閉進階篩選不套用草稿並還原控制值", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  await page.getByRole("button", { name: "貴賓室" }).click();
+  await expect(page.locator(".result-row")).toHaveCount(4);
+
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  const filters = page.getByRole("dialog", { name: "進階篩選" });
+  await expect(filters).toBeVisible();
+  await page.getByLabel("據點類型").selectOption("EAT");
+  await page.getByRole("button", { name: "關閉篩選" }).click();
+
+  await expect(filters).toBeHidden();
+  await expect(page.locator(".result-row")).toHaveCount(4);
+  await expect(page.getByRole("button", { name: "貴賓室" }))
+    .toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  await expect(page.getByLabel("據點類型")).toHaveValue("LOUNGE");
+});
+
 test("無結果時提供清除操作", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("搜尋機場").fill("ZZZZ-NOT-FOUND");
@@ -120,7 +180,7 @@ test("鍵盤可完成搜尋並開關進階篩選", async ({ page }) => {
   await page.getByLabel("搜尋機場").focus();
   await page.keyboard.type("TPE");
   await page.keyboard.press("Enter");
-  await expect(page.locator("#results")).toContainText("TPE");
+  await expect(page.locator("#overview-code")).toHaveText("TPE");
   await page.getByRole("button", { name: "進階篩選" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#filters")).toBeVisible();
