@@ -165,6 +165,14 @@ function render() {
   renderSuggestions();
 }
 
+function syncQuickFilterState(type) {
+  document.querySelectorAll("[data-quick-type]").forEach((button) => {
+    const active = button.dataset.quickType === type;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
 function resetFilters() {
   state.filters = { country: "", city: "", type: "", facility: "" };
   state.sort = "relevance";
@@ -173,8 +181,7 @@ function resetFilters() {
   for (const id of ["country-filter", "city-filter", "type-filter", "facility-filter"]) el[id].value = "";
   el["sort-filter"].value = "relevance";
   el["page-size-filter"].value = "24";
-  document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.remove("active"));
-  document.querySelector('[data-quick-filter=""]').classList.add("active");
+  syncQuickFilterState("");
   render();
 }
 
@@ -268,6 +275,7 @@ el["filter-form"].addEventListener("submit", () => {
   state.sort = el["sort-filter"].value;
   state.pageSize = Number(el["page-size-filter"].value);
   state.page = 1;
+  syncQuickFilterState(state.filters.type);
   render();
 });
 el["clear-filters"].addEventListener("click", resetFilters);
@@ -297,14 +305,14 @@ el["download-button"].addEventListener("click", () => {
   if (!state.currentRows.length) return window.alert("目前沒有可匯出的資料。");
   downloadCsv(state.currentRows);
 });
-document.querySelectorAll("[data-quick-filter], [data-quick-type]").forEach((button) => {
+document.querySelectorAll("[data-quick-type]").forEach((button) => {
   button.addEventListener("click", () => {
-    const isFacility = Object.hasOwn(button.dataset, "quickFilter");
-    if (isFacility) state.filters.facility = button.dataset.quickFilter;
-    else state.filters.type = button.dataset.quickType;
+    state.filters.type = button.dataset.quickType;
+    state.filters.facility = "";
+    el["type-filter"].value = state.filters.type;
+    el["facility-filter"].value = "";
     state.page = 1;
-    document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.remove("active"));
-    button.classList.add("active");
+    syncQuickFilterState(state.filters.type);
     render();
   });
 });

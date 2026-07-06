@@ -7,6 +7,37 @@ const viewports = [
   { name: "desktop-1024", width: 1024, height: 900 },
 ];
 
+test("首頁使用 PPS Journal 搜尋優先外殼", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("PPS Journal", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", {
+    name: "下一段旅程，從機場開始。",
+  })).toBeVisible();
+  await expect(page.getByLabel("搜尋機場")).toBeVisible();
+  await expect(
+    page.locator(".brand-mark, .beta, .results-section"),
+  ).toHaveCount(0);
+  const all = page.getByRole("button", { name: "全部" });
+  const lounge = page.getByRole("button", { name: "貴賓室" });
+  await expect(all).toHaveAttribute("aria-pressed", "true");
+  await expect(lounge).toHaveAttribute("aria-pressed", "false");
+  await lounge.click();
+  await expect(lounge).toHaveAttribute("aria-pressed", "true");
+  await expect(all).toHaveAttribute("aria-pressed", "false");
+
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  await expect(page.getByLabel("據點類型")).toHaveValue("LOUNGE");
+  await page.getByRole("button", { name: "套用篩選" }).click();
+  await expect(lounge).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  await page.getByLabel("據點類型").selectOption("EAT");
+  await page.getByRole("button", { name: "套用篩選" }).click();
+  await expect(page.getByRole("button", { name: "餐飲" }))
+    .toHaveAttribute("aria-pressed", "true");
+  await expect(lounge).toHaveAttribute("aria-pressed", "false");
+});
+
 test("TPE 搜尋、進階篩選與詳情流程", async ({ page }) => {
   const errors = [];
   page.on("console", (message) => {

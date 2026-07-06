@@ -10,68 +10,71 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="./">
-      <span class="brand-mark" aria-hidden="true">P</span>
-      <span>PPS Lounge</span>
-      <span class="beta">v2 預覽</span>
-    </a>
+  <header class="masthead">
+    <a class="journal-wordmark" href="./">PPS Journal</a>
+    <span class="edition">GLOBAL AIRPORT EDIT · 中文</span>
     <button class="quiet-button" id="download-button" type="button" disabled>匯出 CSV</button>
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="page-title">
-      <p class="eyebrow">Priority Pass 中文指南</p>
-      <h1 id="page-title">快速找到機場貴賓室。</h1>
-      <p class="hero-copy">輸入三碼機場代碼、城市或機場名稱，立即查看位置、營業時間、使用條件與設施。</p>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="kicker">Airport lounge guide</p>
+      <h1 id="page-title">下一段旅程，從機場開始。</h1>
+      <p>快速查詢全球貴賓室、餐飲與使用條件。</p>
+    </section>
 
+    <section class="search-area" aria-label="機場搜尋">
       <div class="search-shell">
         <label for="search">搜尋機場</label>
         <div class="search-control">
           <span class="search-icon" aria-hidden="true">⌕</span>
           <input id="search" type="search" inputmode="search" autocomplete="off"
             placeholder="例如 TPE、東京、Narita" disabled>
-          <button id="clear-search" class="icon-button" type="button" aria-label="清除搜尋" hidden>×</button>
+          <button id="clear-search" class="icon-button" type="button"
+            aria-label="清除搜尋" hidden>×</button>
         </div>
-        <div id="suggestions" class="suggestions" role="listbox" aria-label="搜尋建議" hidden></div>
+        <div id="suggestions" class="suggestions" role="listbox"
+          aria-label="搜尋建議" hidden></div>
       </div>
-
       <div class="recent-wrap" id="recent-wrap" hidden>
         <span>最近搜尋</span>
-        <div id="recent-searches" class="chip-row"></div>
+        <div id="recent-searches" class="recent-list"></div>
       </div>
     </section>
 
-    <section class="results-section" aria-labelledby="results-title">
-      <div class="toolbar">
+    <section class="results-journal" aria-labelledby="results-title">
+      <div class="results-heading">
         <div>
-          <p class="eyebrow">搜尋結果</p>
+          <p class="kicker">Search results</p>
           <h2 id="results-title">全球機場據點</h2>
         </div>
         <button id="open-filters" class="secondary-button" type="button">進階篩選</button>
       </div>
-
-      <div class="quick-filters" aria-label="快速篩選">
-        <button class="filter-chip active" type="button" data-quick-filter="">全部</button>
-        <button class="filter-chip" type="button" data-quick-filter="Showers">有淋浴</button>
-        <button class="filter-chip" type="button" data-quick-type="LOUNGE">貴賓室</button>
-        <button class="filter-chip" type="button" data-quick-type="EAT">餐飲</button>
+      <div id="airport-overview" class="airport-overview" hidden>
+        <strong id="overview-code"></strong>
+        <div><span id="overview-name"></span><small id="overview-meta"></small></div>
       </div>
-
+      <div class="quick-filters" role="group" aria-label="快速篩選">
+        <button class="quick-filter active" type="button" data-quick-type=""
+          aria-pressed="true">全部</button>
+        <button class="quick-filter" type="button" data-quick-type="LOUNGE"
+          aria-pressed="false">貴賓室</button>
+        <button class="quick-filter" type="button" data-quick-type="EAT"
+          aria-pressed="false">餐飲</button>
+      </div>
       <p id="result-summary" class="result-summary" aria-live="polite">正在載入正式資料…</p>
-      <div id="loading-state" class="state-card">正在載入 1,754 筆機場據點資料…</div>
-      <div id="error-state" class="state-card error" hidden>
+      <div id="loading-state" class="state-panel">正在載入機場據點資料…</div>
+      <div id="error-state" class="state-panel error" hidden>
         <strong>資料載入失敗</strong>
-        <p>請檢查連線後重新載入，不會影響正式 PPS 網站。</p>
+        <p>請檢查連線後重新載入。</p>
         <button id="retry-button" class="primary-button" type="button">重新載入資料</button>
       </div>
-      <div id="empty-state" class="state-card" hidden>
+      <div id="empty-state" class="state-panel" hidden>
         <strong>找不到符合條件的據點</strong>
         <p>請檢查機場代碼，或清除部分篩選條件。</p>
         <button id="empty-clear" class="secondary-button" type="button">清除篩選</button>
       </div>
-      <div id="results" class="result-grid" aria-live="polite"></div>
-
+      <div id="results" class="result-list" aria-live="polite"></div>
       <nav class="pagination" aria-label="搜尋結果分頁">
         <button id="prev-page" class="secondary-button" type="button" disabled>上一頁</button>
         <span id="page-info">第 1 / 1 頁</span>
