@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 const viewports = [
   { name: "mobile-320", width: 320, height: 720 },
   { name: "mobile-375", width: 375, height: 812 },
+  { name: "mobile-390", width: 390, height: 844 },
   { name: "tablet-768", width: 768, height: 900 },
   { name: "desktop-1024", width: 1024, height: 900 },
 ];
@@ -186,6 +187,73 @@ test("鍵盤可完成搜尋並開關進階篩選", async ({ page }) => {
   await expect(page.locator("#filters")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("#filters")).toBeHidden();
+});
+
+test("reduced-motion 啟用時分頁不使用平滑捲動", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    window.__scrollBehaviors = [];
+    Element.prototype.scrollIntoView = function scrollIntoView(options) {
+      window.__scrollBehaviors.push(options?.behavior ?? null);
+    };
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "下一頁" })).toBeEnabled();
+  await page.getByRole("button", { name: "下一頁" }).click();
+
+  await expect.poll(() => page.evaluate(() => window.__scrollBehaviors)).toEqual([
+    "auto",
+  ]);
+});
+
+test("390px 搜尋後首屏可見第一筆結果", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  await page.getByText("Oriental Club Lounge").waitFor({ state: "visible" });
+  const box = await page
+    .locator(".result-row", { hasText: "Oriental Club Lounge" })
+    .boundingBox();
+  expect(box).not.toBeNull();
+  expect(box.y).toBeLessThan(844);
+});
+
+test("6 倍 CPU 降速快速輸入只渲染一次且 250ms 內可見", async ({
+  page,
+  context,
+}) => {
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 6 });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByLabel("搜尋機場")).toBeEnabled();
+
+  const result = await page.evaluate(async () => {
+    const input = document.querySelector("#search");
+    const results = document.querySelector("#results");
+    let mutations = 0;
+    const observer = new MutationObserver(() => { mutations += 1; });
+    observer.observe(results, { childList: true });
+    let lastInputAt = 0;
+
+    for (const [index, value] of ["T", "TP", "TPE"].entries()) {
+      input.value = value;
+      if (index === 2) lastInputAt = performance.now();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    }
+
+    while (!results.textContent.includes("Oriental Club Lounge")) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (performance.now() - lastInputAt > 1000) break;
+    }
+    observer.disconnect();
+    return { elapsed: performance.now() - lastInputAt, mutations };
+  });
+
+  expect(result.mutations).toBe(1);
+  expect(result.elapsed).toBeLessThan(250);
 });
 
 for (const viewport of viewports) {

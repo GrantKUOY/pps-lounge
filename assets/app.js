@@ -213,6 +213,14 @@ function closeDetail() {
   el.detail.close();
 }
 
+function scrollResultsIntoView() {
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    .matches;
+  el["results-title"].scrollIntoView({
+    behavior: reduceMotion ? "auto" : "smooth",
+  });
+}
+
 async function loadData() {
   state.loading = true;
   state.error = null;
@@ -285,12 +293,12 @@ el["retry-button"].addEventListener("click", loadData);
 el["prev-page"].addEventListener("click", () => {
   state.page -= 1;
   render();
-  el["results-title"].scrollIntoView({ behavior: "smooth" });
+  scrollResultsIntoView();
 });
 el["next-page"].addEventListener("click", () => {
   state.page += 1;
   render();
-  el["results-title"].scrollIntoView({ behavior: "smooth" });
+  scrollResultsIntoView();
 });
 el.results.addEventListener("click", (event) => {
   const button = event.target.closest("[data-detail]");

@@ -88,6 +88,10 @@ h1 { margin: 0; font-size: clamp(32px, 6vw, 56px); line-height: 1.02; letter-spa
   color: var(--ink);
   font-size: 18px;
 }
+.search-control input::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
 .search-icon { color: var(--oxblood); font-size: 25px; }
 .icon-button { width: 44px; padding: 0; border: 0; background: transparent; color: var(--ink-muted); font-size: 22px; }
 .suggestions {
@@ -231,3 +235,44 @@ dialog::backdrop { background: rgba(32, 37, 34, .42); }
 .sheet-actions button { flex: 1; }
 .pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 24px; color: var(--ink-muted); font-size: 13px; }
 footer { width: min(1040px, 100%); margin: 0 auto; padding: 0 24px 40px; color: var(--ink-muted); text-align: center; font-size: 12px; line-height: 1.6; }
+
+@media (min-width: 760px) {
+  .result-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 34px; }
+  .result-row:nth-child(2) { border-top: 0; }
+}
+
+@media (max-width: 700px) {
+  .masthead { grid-template-columns: 1fr auto; padding: 11px 14px; }
+  .edition { display: none; }
+  main { padding-left: 14px; padding-right: 14px; }
+  .intro { padding-top: 24px; }
+  .intro h1 { font-size: 34px; }
+  .search-area { padding-bottom: 24px; }
+  .results-heading { align-items: center; }
+  .airport-overview { padding-top: 20px; }
+  .result-body { gap: 12px; }
+  .result-body .text-action { align-self: end; }
+  .filter-grid { grid-template-columns: 1fr; }
+  .sheet { width: calc(100% - 12px); margin-bottom: 6px; }
+  .sheet-panel, .detail-panel { padding: 18px 14px; }
+  .detail-dialog { width: calc(100% - 12px); margin: 6px auto; }
+  .detail-fact { grid-template-columns: 82px 1fr; gap: 12px; }
+}
+
+@media (max-width: 360px) {
+  .journal-wordmark { font-size: 16px; }
+  .quiet-button { font-size: 12px; }
+  .intro h1 { font-size: 30px; }
+  .airport-overview { align-items: start; }
+  .airport-overview > div { text-align: left; }
+  .result-body { display: block; }
+  .text-action { margin-top: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
