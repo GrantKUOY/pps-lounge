@@ -15,6 +15,10 @@ import {
   detailHtml,
   resultRowHtml,
 } from "./presentation.js";
+import {
+  displayCityName,
+  displayCountryName,
+} from "./localized-names.js";
 import { readRecent, writeRecent } from "./storage.js";
 
 const state = {
@@ -66,8 +70,18 @@ function setOptions(select, values, emptyLabel, label = (value) => value) {
 }
 
 function populateFilters() {
-  setOptions(el["country-filter"], unique(state.rows.map((row) => row.country)), "全部國家／地區");
-  setOptions(el["city-filter"], unique(state.rows.map((row) => row.city)), "全部城市");
+  setOptions(
+    el["country-filter"],
+    unique(state.rows.map((row) => row.country)),
+    "全部國家／地區",
+    displayCountryName,
+  );
+  setOptions(
+    el["city-filter"],
+    unique(state.rows.map((row) => row.city)),
+    "全部城市",
+    displayCityName,
+  );
   const types = unique(state.rows.map((row) => row.type));
   const labels = new Map(state.rows.map((row) => [row.type, row.typeLabel]));
   setOptions(el["type-filter"], types, "全部類型", (value) => labels.get(value) ?? value);

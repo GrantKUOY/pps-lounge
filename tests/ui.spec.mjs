@@ -124,6 +124,24 @@ test("關閉進階篩選不套用草稿並還原控制值", async ({ page }) => 
   await expect(page.getByLabel("據點類型")).toHaveValue("LOUNGE");
 });
 
+test("進階篩選國家與城市保留英文 value 並顯示台灣用語中文", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "進階篩選" }).click();
+
+  const country = page.getByLabel("國家／地區");
+  const city = page.locator("#city-filter");
+  await expect(country.locator("option[value='Taiwan']")).toHaveText("Taiwan（台灣）");
+  await expect(country.locator("option[value='United States of America']"))
+    .toHaveText("United States of America（美國）");
+  await expect(city.locator("option[value='Taoyuan']")).toHaveText("Taoyuan（桃園）");
+  await expect(city.locator("option[value='Seoul']")).toHaveText("Seoul（首爾）");
+
+  await country.selectOption("Taiwan");
+  await city.selectOption("Taoyuan");
+  await expect(country).toHaveValue("Taiwan");
+  await expect(city).toHaveValue("Taoyuan");
+});
+
 test("無結果時提供清除操作", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("搜尋機場").fill("ZZZZ-NOT-FOUND");
