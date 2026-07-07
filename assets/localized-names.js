@@ -155,7 +155,7 @@ const COUNTRY_NAME_OVERRIDES_ZH_TW = new Map([
   ["VN", "越南"],
 ]);
 
-const CITY_NAMES_ZH_TW = new Map([
+let cityNamesZhTw = new Map([
   ["Abu Dhabi", "阿布達比"],
   ["Amsterdam", "阿姆斯特丹"],
   ["Auckland", "奧克蘭"],
@@ -188,6 +188,12 @@ const CITY_NAMES_ZH_TW = new Map([
   ["Vancouver", "溫哥華"],
 ]);
 
+export function configureLocalizedNames({ cityNamesZhTw: cityNames } = {}) {
+  if (cityNames && typeof cityNames === "object") {
+    cityNamesZhTw = new Map(Object.entries(cityNames));
+  }
+}
+
 function withZhTwName(value, names) {
   const localized = names.get(value);
   return localized ? `${value}（${localized}）` : value;
@@ -202,5 +208,5 @@ export function displayCountryName(value) {
 }
 
 export function displayCityName(value) {
-  return withZhTwName(value, CITY_NAMES_ZH_TW);
+  return withZhTwName(value, cityNamesZhTw);
 }

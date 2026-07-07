@@ -16,6 +16,7 @@ import {
   resultRowHtml,
 } from "./presentation.js";
 import {
+  configureLocalizedNames,
   displayCityName,
   displayCountryName,
 } from "./localized-names.js";
@@ -248,6 +249,18 @@ function scrollResultsIntoView() {
   });
 }
 
+async function loadLocalization() {
+  try {
+    const response = await fetch("data/localization/city-names-zh-tw.json", {
+      cache: "no-cache",
+    });
+    if (!response.ok) return;
+    configureLocalizedNames({ cityNamesZhTw: await response.json() });
+  } catch {
+    // 中文城市對照是顯示增強；載入失敗時保留內建 fallback 與英文名稱。
+  }
+}
+
 async function loadData() {
   state.loading = true;
   state.error = null;
@@ -258,6 +271,7 @@ async function loadData() {
     const rows = await response.json();
     if (!Array.isArray(rows) || rows.length === 0) throw new Error("資料內容不符");
     state.rows = createSearchIndex(rows);
+    await loadLocalization();
     populateFilters();
     renderRecent();
     state.loading = false;

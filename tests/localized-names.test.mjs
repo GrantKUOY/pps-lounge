@@ -2,9 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  configureLocalizedNames,
   displayCityName,
   displayCountryName,
 } from "../assets/localized-names.js";
+
+async function readCityNames() {
+  return JSON.parse(
+    await readFile(
+      new URL("../data/localization/city-names-zh-tw.json", import.meta.url),
+      "utf8",
+    ),
+  );
+}
 
 test("國家與城市顯示台灣用語中文且保留英文原值", () => {
   assert.equal(displayCountryName("Taiwan"), "Taiwan（台灣）");
@@ -60,4 +70,24 @@ test("高頻機場城市白名單顯示台灣常用中文", () => {
   for (const [city, localized] of expected) {
     assert.equal(displayCityName(city), `${city}（${localized}）`);
   }
+});
+
+test("城市中文對照檔可維護且覆蓋目前資料至少 20%", async () => {
+  const [rows, cityNames] = await Promise.all([
+    readFile(new URL("../data/lounges.json", import.meta.url), "utf8").then(JSON.parse),
+    readCityNames(),
+  ]);
+  configureLocalizedNames({ cityNamesZhTw: cityNames });
+
+  const cities = [...new Set(rows.map((row) => row.city).filter(Boolean))];
+  const translated = cities.filter((city) => displayCityName(city).includes("（"));
+
+  assert.ok(Object.keys(cityNames).length >= 150);
+  assert.ok(
+    translated.length / cities.length >= 0.2,
+    `city translation coverage ${translated.length}/${cities.length}`,
+  );
+  assert.equal(displayCityName("Abu Dhabi"), "Abu Dhabi（阿布達比）");
+  assert.equal(displayCityName("São Paulo"), "São Paulo（聖保羅）");
+  assert.equal(displayCityName("Kaohsiung (Xiaogang)"), "Kaohsiung (Xiaogang)（高雄小港）");
 });
