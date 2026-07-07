@@ -69,6 +69,23 @@ function setOptions(select, values, emptyLabel, label = (value) => value) {
   if (values.includes(current)) select.value = current;
 }
 
+function citiesForCountry(country) {
+  return unique(
+    state.rows
+      .filter((row) => !country || row.country === country)
+      .map((row) => row.city),
+  );
+}
+
+function setCityOptions(country) {
+  setOptions(
+    el["city-filter"],
+    citiesForCountry(country),
+    "全部城市",
+    displayCityName,
+  );
+}
+
 function populateFilters() {
   setOptions(
     el["country-filter"],
@@ -76,12 +93,7 @@ function populateFilters() {
     "全部國家／地區",
     displayCountryName,
   );
-  setOptions(
-    el["city-filter"],
-    unique(state.rows.map((row) => row.city)),
-    "全部城市",
-    displayCityName,
-  );
+  setCityOptions(el["country-filter"].value);
   const types = unique(state.rows.map((row) => row.type));
   const labels = new Map(state.rows.map((row) => [row.type, row.typeLabel]));
   setOptions(el["type-filter"], types, "全部類型", (value) => labels.get(value) ?? value);
@@ -183,6 +195,7 @@ function syncQuickFilterState(type) {
 
 function syncFilterControls() {
   el["country-filter"].value = state.filters.country;
+  setCityOptions(state.filters.country);
   el["city-filter"].value = state.filters.city;
   el["type-filter"].value = state.filters.type;
   el["facility-filter"].value = state.filters.facility;
@@ -283,6 +296,9 @@ el["open-filters"].addEventListener("click", () => {
 el["close-filters"].addEventListener("click", () => {
   syncFilterControls();
   el.filters.close();
+});
+el["country-filter"].addEventListener("change", () => {
+  setCityOptions(el["country-filter"].value);
 });
 el["filter-form"].addEventListener("submit", () => {
   state.filters = {

@@ -137,6 +137,14 @@ test("進階篩選國家與城市保留英文 value 並顯示台灣用語中文"
   await expect(city.locator("option[value='Seoul']")).toHaveText("Seoul（首爾）");
 
   await country.selectOption("Taiwan");
+  await expect(city.locator("option")).toHaveCount(5);
+  await expect(city.locator("option[value='']")).toHaveText("全部城市");
+  await expect(city.locator("option[value='Taoyuan']")).toHaveText("Taoyuan（桃園）");
+  await expect(city.locator("option[value='Kaohsiung (Xiaogang)']")).toHaveText("Kaohsiung (Xiaogang)");
+  await expect(city.locator("option[value='Taichung (Qingshui)']")).toHaveText("Taichung (Qingshui)");
+  await expect(city.locator("option[value='Taipei (Songshan)']")).toHaveText("Taipei (Songshan)");
+  await expect(city.locator("option[value='Seoul']")).toHaveCount(0);
+
   await city.selectOption("Taoyuan");
   await expect(country).toHaveValue("Taiwan");
   await expect(city).toHaveValue("Taoyuan");
