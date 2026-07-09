@@ -72,7 +72,7 @@ test("高頻機場城市白名單顯示台灣常用中文", () => {
   }
 });
 
-test("城市中文對照檔可維護且覆蓋目前資料至少 20%", async () => {
+test("城市中文對照檔可維護且覆蓋目前資料 100%", async () => {
   const [rows, cityNames] = await Promise.all([
     readFile(new URL("../data/lounges.json", import.meta.url), "utf8").then(JSON.parse),
     readCityNames(),
@@ -82,12 +82,21 @@ test("城市中文對照檔可維護且覆蓋目前資料至少 20%", async () =
   const cities = [...new Set(rows.map((row) => row.city).filter(Boolean))];
   const translated = cities.filter((city) => displayCityName(city).includes("（"));
 
-  assert.ok(Object.keys(cityNames).length >= 150);
-  assert.ok(
-    translated.length / cities.length >= 0.2,
-    `city translation coverage ${translated.length}/${cities.length}`,
-  );
+  assert.equal(translated.length, cities.length);
   assert.equal(displayCityName("Abu Dhabi"), "Abu Dhabi（阿布達比）");
   assert.equal(displayCityName("São Paulo"), "São Paulo（聖保羅）");
   assert.equal(displayCityName("Kaohsiung (Xiaogang)"), "Kaohsiung (Xiaogang)（高雄小港）");
+});
+
+test("城市中文草稿避免明顯的非地名誤配", async () => {
+  const cityNames = await readCityNames();
+  configureLocalizedNames({ cityNamesZhTw: cityNames });
+
+  assert.equal(displayCityName("Belém"), "Belém（貝倫）");
+  assert.equal(displayCityName("Dehong (Mangshi)"), "Dehong (Mangshi)（德宏芒市）");
+  assert.equal(displayCityName("Baltimore"), "Baltimore（巴爾的摩）");
+  assert.equal(displayCityName("Buffalo"), "Buffalo（水牛城）");
+  assert.equal(displayCityName("Bâle / Mulhouse"), "Bâle / Mulhouse（巴塞爾／米盧斯）");
+  assert.equal(displayCityName("Bandar Seri Begawan"), "Bandar Seri Begawan（斯里巴加灣市）");
+  assert.equal(displayCityName("Bridgetown"), "Bridgetown（布里奇敦）");
 });
