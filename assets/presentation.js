@@ -47,7 +47,7 @@ export function resultRowHtml(row) {
     <div class="result-kicker">${escapeHtml(terminal)} · ${escapeHtml(row.typeLabel)}</div>
     <div class="result-body">
       <div>
-        <h3>${escapeHtml(row.name)}</h3>
+        <h3>${escapeHtml(row.airportCode)} · ${escapeHtml(row.name)}</h3>
         <p>${escapeHtml(opening)} · ${escapeHtml(formatLocation(row.location))}</p>
       </div>
       <button class="text-action" type="button" data-detail="${row._searchOrder}">查看詳情 →</button>
@@ -71,7 +71,7 @@ export function detailHtml(row) {
 
   return `<header class="detail-heading">
       <span class="detail-code">${escapeHtml(row.airportCode)}</span>
-      <h2>${escapeHtml(row.name)}</h2>
+      <h2>${escapeHtml(row.airportCode)} · ${escapeHtml(row.name)}</h2>
       <p>${escapeHtml(row.airportName)} · ${escapeHtml(formatTerminal(row.terminal))}</p>
     </header>
     <dl class="detail-facts">

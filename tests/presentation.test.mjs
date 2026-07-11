@@ -27,7 +27,7 @@ const row = {
 test("結果列使用編輯式清單且只顯示三項重要設施", () => {
   const html = resultRowHtml(row);
   assert.match(html, /class="result-row"/);
-  assert.match(html, /Oriental &lt;Club&gt;/);
+  assert.match(html, /TPE · Oriental &lt;Club&gt;/);
   assert.match(html, /第 2 航廈/);
   assert.doesNotMatch(html, /result-card|meta-box|type-badge/);
   assert.deepEqual(visibleFacilities(row), [
@@ -63,6 +63,7 @@ test("精確機場查詢產生真實機場摘要", () => {
 test("詳情採資料列並只輸出安全官方網址", () => {
   const html = detailHtml(row);
   assert.match(html, /class="detail-fact"/);
+  assert.match(html, /TPE · Oriental &lt;Club&gt;/);
   assert.match(html, /開啟 Priority Pass 官方頁面/);
   assert.doesNotMatch(html, /detail-section|meta-box/);
 

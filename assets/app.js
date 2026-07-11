@@ -63,6 +63,8 @@ const el = Object.fromEntries(
 let searchTimer;
 let detailTrigger = null;
 let photoLightbox = null;
+let photoLightboxItems = [];
+let photoLightboxIndex = 0;
 let installPromptEvent = null;
 
 function unique(values) {
@@ -287,26 +289,54 @@ function ensurePhotoLightbox() {
     <img alt="">
   </button>`;
   document.body.append(lightbox);
-  lightbox.addEventListener("click", closePhotoLightbox);
+  lightbox.addEventListener("click", (event) => {
+    if (event.target === lightbox) closePhotoLightbox();
+  });
+  lightbox.querySelector(".photo-lightbox-surface").addEventListener("click", advancePhotoLightbox);
   photoLightbox = lightbox;
   return photoLightbox;
 }
 
-function openPhotoLightbox(src, alt = "旅客上傳照片") {
+function renderPhotoLightboxItem() {
+  const item = photoLightboxItems[photoLightboxIndex];
+  if (!photoLightbox || !item) return;
+  const image = photoLightbox.querySelector("img");
+  const surface = photoLightbox.querySelector(".photo-lightbox-surface");
+  image.src = item.src;
+  image.alt = item.alt || "旅客上傳照片";
+  surface.setAttribute(
+    "aria-label",
+    photoLightboxIndex < photoLightboxItems.length - 1 ? "下一張照片" : "關閉照片預覽",
+  );
+}
+
+function openPhotoLightbox(src, alt = "旅客上傳照片", items = [], index = 0) {
   if (!src) return;
   const lightbox = ensurePhotoLightbox();
-  const image = lightbox.querySelector("img");
-  image.src = src;
-  image.alt = alt;
+  photoLightboxItems = items.length ? items : [{ src, alt }];
+  photoLightboxIndex = Math.max(0, Math.min(index, photoLightboxItems.length - 1));
+  renderPhotoLightboxItem();
   if (!lightbox.open) lightbox.showModal();
   document.body.classList.add("photo-lightbox-open");
   lightbox.querySelector("button").focus();
+}
+
+function advancePhotoLightbox() {
+  if (!photoLightbox || !photoLightbox.open) return;
+  if (photoLightboxIndex < photoLightboxItems.length - 1) {
+    photoLightboxIndex += 1;
+    renderPhotoLightboxItem();
+    return;
+  }
+  closePhotoLightbox();
 }
 
 function closePhotoLightbox() {
   if (!photoLightbox || !photoLightbox.open) return;
   photoLightbox.close();
   photoLightbox.querySelector("img").removeAttribute("src");
+  photoLightboxItems = [];
+  photoLightboxIndex = 0;
   document.body.classList.remove("photo-lightbox-open");
 }
 
@@ -564,9 +594,16 @@ function openReportDialog() {
 el["detail-content"].addEventListener("click", (event) => {
   const photoButton = event.target.closest("[data-lightbox-src]");
   if (photoButton) {
+    const buttons = Array.from(photoButton.closest(".community-photos")?.querySelectorAll("[data-lightbox-src]") ?? []);
+    const items = buttons.map((button) => ({
+      src: button.dataset.lightboxSrc,
+      alt: button.querySelector("img")?.alt || "旅客上傳照片",
+    })).filter((item) => item.src);
     openPhotoLightbox(
       photoButton.dataset.lightboxSrc,
       photoButton.querySelector("img")?.alt,
+      items,
+      buttons.indexOf(photoButton),
     );
     return;
   }

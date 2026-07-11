@@ -196,9 +196,77 @@ test("詳情顯示旅客 Data Points 區塊並可開啟待審投稿表單", asyn
   await page.getByRole("button", { name: "分享你的體驗" }).click();
   const report = page.getByRole("dialog", { name: "分享你的體驗" });
   await expect(report).toBeVisible();
-  await expect(page.getByText("TPE · Oriental Club Lounge")).toBeVisible();
+  await expect(report.locator("#report-lounge")).toContainText("TPE · Oriental Club Lounge");
   await expect(page.getByLabel("Email（不公開）")).toBeVisible();
   await expect(page.getByText("投稿送出後會先進入待審")).toBeVisible();
+});
+
+test("公開留言照片大圖可點擊前進並在最後一張關閉", async ({ page }) => {
+  const firstPhoto = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='red'/%3E%3C/svg%3E";
+  const secondPhoto = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='blue'/%3E%3C/svg%3E";
+
+  await page.route("**/api/community-config", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        enabled: true,
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon-key",
+        maxPhotoSize: 5242880,
+      }),
+    });
+  });
+  await page.route("https://example.supabase.co/rest/v1/lounge_reports**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([{
+        id: "report-1",
+        lounge_key: "taiwan-tpe-oriental-club-lounge-terminal-2",
+        airport_code: "TPE",
+        lounge_name: "Oriental Club Lounge",
+        nickname: "Louise",
+        visit_date: "2026-07-06",
+        entry_result: "success",
+        queue_level: "none",
+        crowd_level: "normal",
+        food_rating: 5,
+        rest_rating: 4,
+        overall_rating: 5,
+        body: "牛肉麵口感很棒",
+        status: "approved",
+      }]),
+    });
+  });
+  await page.route("https://example.supabase.co/rest/v1/lounge_report_photos**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([
+        { report_id: "report-1", public_url: firstPhoto, storage_path: "", sort_order: 0 },
+        { report_id: "report-1", public_url: secondPhoto, storage_path: "", sort_order: 1 },
+      ]),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  await page.locator(".result-row").filter({
+    hasText: "Oriental Club Lounge",
+  }).getByRole("button", { name: "查看詳情" }).click();
+
+  await page.locator(".community-report").filter({ hasText: "Louise" })
+    .locator(".community-photo-button")
+    .first()
+    .click();
+  const lightbox = page.locator(".photo-lightbox[open]");
+  await expect(lightbox).toBeVisible();
+  await expect(lightbox.locator("img")).toHaveAttribute("src", firstPhoto);
+
+  await lightbox.locator(".photo-lightbox-surface").click();
+  await expect(lightbox).toBeVisible();
+  await expect(lightbox.locator("img")).toHaveAttribute("src", secondPhoto);
+
+  await lightbox.locator(".photo-lightbox-surface").click();
+  await expect(lightbox).toBeHidden();
 });
 
 test("投稿 API 失敗時顯示錯誤並恢復送出按鈕", async ({ page }) => {
