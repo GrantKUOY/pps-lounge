@@ -1,6 +1,7 @@
 import {
   loungeKeyForRow,
   sanitizePublicReport,
+  storagePublicUrl,
   validateReportDraft,
   validateReportPhotos,
 } from "./community.js";
@@ -69,6 +70,22 @@ export async function fetchApprovedReports(row) {
     config,
     `/rest/v1/lounge_reports?lounge_key=eq.${encodeURIComponent(loungeKey)}&status=eq.approved&select=${select}&order=visit_date.desc&limit=12`,
   );
+  const reportIds = reports.map((report) => report.id).filter(Boolean);
+  const photosByReport = new Map(reportIds.map((id) => [id, []]));
+  if (reportIds.length) {
+    const photos = await supabaseFetch(
+      config,
+      `/rest/v1/lounge_report_photos?report_id=in.(${reportIds.map(encodeURIComponent).join(",")})&select=report_id,storage_path,public_url,sort_order&order=sort_order.asc`,
+    );
+    for (const photo of photos ?? []) {
+      const list = photosByReport.get(photo.report_id);
+      if (!list) continue;
+      list.push({
+        publicUrl: photo.public_url || storagePublicUrl(config.supabaseUrl, photo.storage_path),
+        public_url: photo.public_url || storagePublicUrl(config.supabaseUrl, photo.storage_path),
+      });
+    }
+  }
 
   return {
     enabled: true,
@@ -84,6 +101,7 @@ export async function fetchApprovedReports(row) {
       foodRating: report.food_rating,
       restRating: report.rest_rating,
       overallRating: report.overall_rating,
+      photos: photosByReport.get(report.id) ?? [],
     })),
   };
 }

@@ -98,6 +98,13 @@ export function loungeKeyForRow(row = {}) {
     .slice(0, 160);
 }
 
+export function storagePublicUrl(supabaseUrl, storagePath) {
+  const base = trimString(supabaseUrl).replace(/\/+$/, "");
+  const path = trimString(storagePath).replace(/^\/+/, "");
+  if (!base || !path) return "";
+  return `${base}/storage/v1/object/public/lounge-report-photos/${path}`;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")

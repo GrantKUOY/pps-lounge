@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   communityReportsHtml,
   sanitizePublicReport,
+  storagePublicUrl,
   validateReportDraft,
   validateReportPhotos,
 } from "../assets/community.js";
@@ -136,4 +137,16 @@ test("Storage 上傳 policy 使用 security definer 檢查 pending report", () =
   assert.match(migration, /security definer/);
   assert.match(migration, /to anon/);
   assert.match(migration, /public\.can_upload_lounge_report_photo\(storage\.objects\.name\)/);
+});
+
+test("Storage path 可轉成公開照片 URL", () => {
+  const url = storagePublicUrl(
+    "https://example.supabase.co",
+    "pending/report-1/0.jpg",
+  );
+
+  assert.equal(
+    url,
+    "https://example.supabase.co/storage/v1/object/public/lounge-report-photos/pending/report-1/0.jpg",
+  );
 });
