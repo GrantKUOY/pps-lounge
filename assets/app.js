@@ -508,8 +508,8 @@ el["report-form"].addEventListener("submit", async (event) => {
       el["report-status"].textContent =
         [...fieldErrors, ...photoErrors].join(" ") || result.message || "投稿失敗，請稍後再試。";
     }
-  } catch {
-    el["report-status"].textContent = "投稿失敗，請稍後再試。";
+  } catch (error) {
+    el["report-status"].textContent = error?.message || "投稿失敗，請稍後再試。";
   } finally {
     el["submit-report"].disabled = false;
   }

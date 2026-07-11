@@ -242,7 +242,62 @@ test("投稿 API 失敗時顯示錯誤並恢復送出按鈕", async ({ page }) =
 
   const submit = report.getByRole("button", { name: "送出待審" });
   await submit.click();
-  await expect(page.locator("#report-status")).toHaveText("投稿失敗，請稍後再試。");
+  await expect(page.locator("#report-status")).toHaveText("Supabase HTTP 500：forced failure");
+  await expect(submit).toBeEnabled();
+});
+
+test("照片上傳失敗時指出照片序號與 Storage 狀態", async ({ page }) => {
+  await page.route("**/api/community-config", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        enabled: true,
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon-key",
+        maxPhotoSize: 5242880,
+      }),
+    });
+  });
+  await page.route("https://example.supabase.co/rest/v1/lounge_reports", async (route) => {
+    await route.fulfill({ status: 201, body: "" });
+  });
+  await page.route("https://example.supabase.co/storage/v1/object/lounge-report-photos/**", async (route) => {
+    await route.fulfill({
+      status: 413,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "The resource already exceeds the maximum size" }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  await page.locator(".result-row").filter({
+    hasText: "Oriental Club Lounge",
+  }).getByRole("button", { name: "查看詳情" }).click();
+  await page.getByRole("button", { name: "分享你的體驗" }).click();
+
+  const report = page.getByRole("dialog", { name: "分享你的體驗" });
+  await report.getByLabel("暱稱").fill("Louise");
+  await report.getByLabel("Email（不公開）").fill("louise2@gmail.com");
+  await report.getByLabel("到訪日期").fill("2026-07-06");
+  await report.getByLabel("入場結果").selectOption("success");
+  await report.getByLabel("排隊狀況").selectOption("none");
+  await report.getByLabel("擁擠程度").selectOption("normal");
+  await report.getByLabel("餐飲評價").selectOption("5");
+  await report.getByLabel("休息／安靜程度").selectOption("4");
+  await report.getByLabel("整體評分").selectOption("5");
+  await report.getByLabel("文字心得").fill("牛肉麵口感很棒");
+  await report.getByLabel("照片（最多 5 張）").setInputFiles({
+    name: "beef-noodle.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+  });
+
+  const submit = report.getByRole("button", { name: "送出待審" });
+  await submit.click();
+  await expect(page.locator("#report-status")).toContainText(
+    "第 1 張照片 beef-noodle.jpg 上傳失敗（HTTP 413）",
+  );
   await expect(submit).toBeEnabled();
 });
 

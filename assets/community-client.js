@@ -35,9 +35,23 @@ async function supabaseFetch(config, path, options = {}) {
     ...options,
     headers: supabaseHeaders(config, options.headers),
   });
-  if (!response.ok) throw new Error(`Supabase HTTP ${response.status}`);
-  if (response.status === 204) return null;
-  return response.json();
+  const text = await response.text().catch(() => "");
+  if (!response.ok) {
+    throw new Error(`Supabase HTTP ${response.status}${errorDetailSuffix(text)}`);
+  }
+  if (!text) return null;
+  return JSON.parse(text);
+}
+
+function errorDetailSuffix(value) {
+  if (!value) return "";
+  try {
+    const parsed = JSON.parse(value);
+    const message = parsed.message || parsed.error || parsed.msg || "";
+    return message ? `：${message}` : "";
+  } catch {
+    return `：${String(value).slice(0, 120)}`;
+  }
 }
 
 export async function fetchApprovedReports(row) {
@@ -87,7 +101,11 @@ async function uploadPhotos(config, reportId, photos) {
       }),
       body: photo,
     });
-    if (!response.ok) throw new Error(`Photo upload HTTP ${response.status}`);
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      const label = photo.name ? ` ${photo.name}` : "";
+      throw new Error(`第 ${index + 1} 張照片${label} 上傳失敗（HTTP ${response.status}）${errorDetailSuffix(detail)}`);
+    }
     uploaded.push({
       report_id: reportId,
       storage_path: path,
