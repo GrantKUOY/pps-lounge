@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#5a1f2b">
+  <title>PPS Journal｜投稿審核</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="journal-wordmark" href="./">PPS Journal</a>
+    <span class="edition">REVIEW DESK</span>
+    <button class="quiet-button" id="logout-button" type="button">清除登入</button>
+  </header>
+
+  <main class="admin-page">
+    <section class="intro">
+      <p class="kicker">Admin</p>
+      <h1>旅客 Data Points 審核</h1>
+      <p>輸入管理 token 後，可核准、拒絕或刪除投稿。這個頁面不會被 PWA 快取。</p>
+    </section>
+
+    <section class="admin-login" id="admin-login">
+      <label>管理 token
+        <input id="admin-token" type="password" autocomplete="current-password">
+      </label>
+      <button id="load-admin" class="primary-button" type="button">載入待審投稿</button>
+    </section>
+
+    <section class="admin-toolbar" aria-label="審核篩選">
+      <button class="region-shortcut active" type="button" data-admin-status="pending">待審</button>
+      <button class="region-shortcut" type="button" data-admin-status="approved">已核准</button>
+      <button class="region-shortcut" type="button" data-admin-status="rejected">已拒絕</button>
+    </section>
+
+    <p id="admin-status" class="form-status" role="status"></p>
+    <div id="admin-reports" class="admin-reports"></div>
+  </main>
+
+  <script type="module" src="assets/admin.js"></script>
+</body>
+</html>

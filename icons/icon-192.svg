@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="PPS Journal">
+  <rect width="192" height="192" rx="42" fill="#5a1f2b"/>
+  <rect x="26" y="26" width="140" height="140" rx="30" fill="#f5f0e8"/>
+  <path d="M58 132V58h42c22 0 36 13 36 32s-14 32-36 32H80v10H58Zm22-30h18c10 0 16-5 16-12s-6-12-16-12H80v24Z" fill="#1b1715"/>
+  <path d="M50 150h92" stroke="#5a1f2b" stroke-width="8" stroke-linecap="round"/>
+</svg>

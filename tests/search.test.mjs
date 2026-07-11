@@ -39,6 +39,16 @@ const rows = [
     facilities: ["Wi-Fi"],
     searchText: "東京 成田 tokyo narita",
   },
+  {
+    airportCode: "FRA",
+    airportName: "Frankfurt Airport",
+    city: "Frankfurt",
+    country: "Germany",
+    name: "Lounge D",
+    type: "LOUNGE",
+    facilities: ["Wi-Fi"],
+    searchText: "法蘭克福 frankfurt",
+  },
 ];
 
 const indexed = createSearchIndex(rows);
@@ -79,10 +89,18 @@ test("複合篩選同時套用國家、類型與設施", () => {
   assert.deepEqual(found.map((row) => row.airportCode), ["TPE"]);
 });
 
+test("地區篩選可與類型篩選疊加", () => {
+  const found = filterRecords(indexed, {
+    region: "asia",
+    type: "LOUNGE",
+  });
+  assert.deepEqual(found.map((row) => row.airportCode), ["TSA", "TPE"]);
+});
+
 test("依機場代碼排序", () => {
   assert.deepEqual(
     sortRecords(indexed, "airportCode").map((row) => row.airportCode),
-    ["NRT", "TPE", "TSA"],
+    ["FRA", "NRT", "TPE", "TSA"],
   );
 });
 
@@ -91,9 +109,9 @@ test("分頁會限制頁碼並回報範圍", () => {
     page: 2,
     pageSize: 2,
     totalPages: 2,
-    totalItems: 3,
+    totalItems: 4,
     start: 3,
-    end: 3,
-    rows: [indexed[2]],
+    end: 4,
+    rows: [indexed[2], indexed[3]],
   });
 });

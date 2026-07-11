@@ -1,9 +1,37 @@
 export const normalize = (value) =>
   String(value ?? "").normalize("NFKC").trim().toLocaleLowerCase();
 
+const asiaCountries = new Set([
+  "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", "Brunei Darussalam",
+  "Cambodia", "China", "Georgia", "Hong Kong", "India", "Indonesia",
+  "Israel", "Japan", "Jordan", "Kazakhstan", "Korea", "Kuwait",
+  "Laos", "Lebanon", "Macau", "Malaysia", "Maldives", "Mongolia",
+  "Myanmar", "Nepal", "Oman", "Pakistan", "Philippines", "Qatar",
+  "Saudi Arabia", "Singapore", "Sri Lanka", "Taiwan", "Thailand",
+  "Turkey", "United Arab Emirates", "Uzbekistan", "Vietnam",
+]);
+
+const europeCountries = new Set([
+  "Albania", "Austria", "Belgium", "Bosnia and Herzegovina", "Bulgaria",
+  "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia", "Finland",
+  "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy",
+  "Latvia", "Lithuania", "Luxembourg", "Malta", "Montenegro",
+  "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Serbia",
+  "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland",
+  "United Kingdom",
+]);
+
+export function regionForRecord(row) {
+  if (row.region) return row.region;
+  if (row.isAsia === true || asiaCountries.has(row.country)) return "asia";
+  if (row.isEurope === true || europeCountries.has(row.country)) return "europe";
+  return "";
+}
+
 export function createSearchIndex(rows) {
   return rows.map((row, index) => ({
     ...row,
+    region: regionForRecord(row),
     _searchOrder: index,
     _searchCode: normalize(row.airportCode),
     _searchText: normalize(
@@ -54,6 +82,11 @@ export function searchRecords(rows, query) {
 export function filterRecords(rows, filters = {}) {
   return rows.filter(
     (row) =>
+      (!filters.region || row.region === filters.region || (
+        filters.region === "asia" && row.isAsia === true
+      ) || (
+        filters.region === "europe" && row.isEurope === true
+      )) &&
       (!filters.country || row.country === filters.country) &&
       (!filters.city || row.city === filters.city) &&
       (!filters.type || row.type === filters.type) &&

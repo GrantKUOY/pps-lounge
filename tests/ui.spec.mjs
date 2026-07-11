@@ -150,6 +150,51 @@ test("進階篩選國家與城市保留英文 value 並顯示台灣用語中文"
   await expect(city).toHaveValue("Taoyuan");
 });
 
+test("地區捷徑可篩選亞洲並同步進階篩選", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "亞洲（含中東）" }).click();
+  await expect(page.getByRole("button", { name: "亞洲（含中東）" }))
+    .toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".result-row").first()).toBeVisible();
+
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  await expect(page.locator("#region-filter")).toHaveValue("asia");
+  await expect(page.getByLabel("國家／地區").locator("option[value='Taiwan']")).toHaveCount(1);
+  await expect(page.getByLabel("國家／地區").locator("option[value='Germany']")).toHaveCount(0);
+});
+
+test("詳情顯示旅客 Data Points 區塊並可開啟待審投稿表單", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  await page.locator(".result-row").filter({
+    hasText: "Oriental Club Lounge",
+  }).getByRole("button", { name: "查看詳情" }).click();
+
+  await expect(page.getByRole("heading", { name: "旅客 Data Points" })).toBeVisible();
+  await expect(page.getByText("旅客回報後端尚未設定")).toBeVisible();
+  await page.getByRole("button", { name: "分享你的體驗" }).click();
+  const report = page.getByRole("dialog", { name: "分享你的體驗" });
+  await expect(report).toBeVisible();
+  await expect(page.getByText("TPE · Oriental Club Lounge")).toBeVisible();
+  await expect(page.getByLabel("Email（不公開）")).toBeVisible();
+  await expect(page.getByText("投稿送出後會先進入待審")).toBeVisible();
+});
+
+test("PWA manifest 與 service worker 可被載入且不快取 admin", async ({ page }) => {
+  await page.goto("/");
+  const manifestHref = await page.locator("link[rel='manifest']").getAttribute("href");
+  expect(manifestHref).toBe("manifest.webmanifest");
+  const manifest = await page.request.get("/manifest.webmanifest");
+  expect(manifest.ok()).toBe(true);
+  const manifestJson = await manifest.json();
+  expect(manifestJson.name).toBe("PPS Journal");
+
+  const sw = await page.request.get("/sw.js");
+  expect(sw.ok()).toBe(true);
+  const swText = await sw.text();
+  expect(swText).not.toContain("caches.match(\"admin");
+});
+
 test("無結果時提供清除操作", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("搜尋機場").fill("ZZZZ-NOT-FOUND");

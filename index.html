@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="手機優先的 Priority Pass 全球機場貴賓室中文查詢工具。">
   <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#5a1f2b">
   <title>PPS Lounge v2｜快速找機場貴賓室</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%231d1d1f%22/><text x=%2232%22 y=%2243%22 text-anchor=%22middle%22 font-size=%2236%22 font-family=%22Arial%22 font-weight=%22700%22 fill=%22white%22>P</text></svg>">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
@@ -62,6 +65,13 @@
         <button class="quick-filter" type="button" data-quick-type="EAT"
           aria-pressed="false">餐飲</button>
       </div>
+      <div class="region-shortcuts" role="group" aria-label="地區捷徑">
+        <span>地區捷徑</span>
+        <button class="region-shortcut" type="button" data-quick-region="asia"
+          aria-pressed="false">亞洲（含中東）</button>
+        <button class="region-shortcut" type="button" data-quick-region="europe"
+          aria-pressed="false">歐洲</button>
+      </div>
       <p id="result-summary" class="result-summary" aria-live="polite">正在載入正式資料…</p>
       <div id="loading-state" class="state-panel">正在載入機場據點資料…</div>
       <div id="error-state" class="state-panel error" hidden>
@@ -92,6 +102,11 @@
           aria-label="關閉篩選">×</button>
       </div>
       <div class="filter-grid">
+        <label>地區<select id="region-filter">
+          <option value="">全部地區</option>
+          <option value="asia">亞洲（含中東）</option>
+          <option value="europe">歐洲</option>
+        </select></label>
         <label>國家／地區<select id="country-filter"><option value="">全部國家／地區</option></select></label>
         <label>城市<select id="city-filter"><option value="">全部城市</option></select></label>
         <label>據點類型<select id="type-filter"><option value="">全部類型</option></select></label>
@@ -123,6 +138,68 @@
       </div>
       <div id="detail-content"></div>
     </article>
+  </dialog>
+
+  <dialog id="report-dialog" class="sheet" aria-labelledby="report-title">
+    <form method="dialog" class="sheet-panel report-form" id="report-form">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <div>
+          <h2 id="report-title">分享你的體驗</h2>
+          <p id="report-lounge">投稿需審核後才會公開。</p>
+        </div>
+        <button id="close-report" class="icon-button" type="button" aria-label="關閉投稿表單">×</button>
+      </div>
+      <div class="report-grid">
+        <label>暱稱<input id="report-nickname" name="nickname" autocomplete="nickname" required></label>
+        <label>Email（不公開）<input id="report-email" name="email" type="email" autocomplete="email" required></label>
+        <label>到訪日期<input id="report-visit-date" name="visitDate" type="date" required></label>
+        <label>航空公司／航班<input id="report-airline-flight" name="airlineFlight" placeholder="例如 BR87，可選填"></label>
+        <label>艙等<input id="report-cabin-class" name="cabinClass" placeholder="例如經濟艙、商務艙，可選填"></label>
+        <label>使用來源<input id="report-access-source" name="accessSource" placeholder="Priority Pass、信用卡等"></label>
+        <label>入場結果<select id="report-entry-result" name="entryResult" required>
+          <option value="">請選擇</option>
+          <option value="success">成功入場</option>
+          <option value="denied">被拒絕入場</option>
+          <option value="limited">有限制入場</option>
+          <option value="unknown">不確定</option>
+        </select></label>
+        <label>排隊狀況<select id="report-queue-level" name="queueLevel" required>
+          <option value="">請選擇</option>
+          <option value="none">免排隊</option>
+          <option value="short">短隊伍</option>
+          <option value="medium">排隊中等</option>
+          <option value="long">排隊較久</option>
+        </select></label>
+        <label>擁擠程度<select id="report-crowd-level" name="crowdLevel" required>
+          <option value="">請選擇</option>
+          <option value="quiet">安靜</option>
+          <option value="normal">普通</option>
+          <option value="busy">偏多人</option>
+          <option value="full">接近客滿</option>
+        </select></label>
+        <label>餐飲評價<select id="report-food-rating" name="foodRating" required>
+          <option value="">請選擇</option>
+          <option value="1">1 分</option><option value="2">2 分</option><option value="3">3 分</option><option value="4">4 分</option><option value="5">5 分</option>
+        </select></label>
+        <label>休息／安靜程度<select id="report-rest-rating" name="restRating">
+          <option value="">不評分</option>
+          <option value="1">1 分</option><option value="2">2 分</option><option value="3">3 分</option><option value="4">4 分</option><option value="5">5 分</option>
+        </select></label>
+        <label>整體評分<select id="report-overall-rating" name="overallRating" required>
+          <option value="">請選擇</option>
+          <option value="1">1 分</option><option value="2">2 分</option><option value="3">3 分</option><option value="4">4 分</option><option value="5">5 分</option>
+        </select></label>
+      </div>
+      <label>文字心得<textarea id="report-body" name="body" rows="5" required placeholder="例如入場狀況、人潮、餐飲、座位、淋浴或服務。"></textarea></label>
+      <label>照片（最多 5 張）<input id="report-photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+      <p class="data-note">請勿上傳登機證、護照、信用卡、他人可識別個資或未授權照片。投稿送出後會先進入待審。</p>
+      <p id="report-status" class="form-status" role="status"></p>
+      <div class="sheet-actions">
+        <button id="cancel-report" class="secondary-button" type="button">取消</button>
+        <button id="submit-report" class="primary-button" value="submit" type="submit">送出待審</button>
+      </div>
+    </form>
   </dialog>
 
   <footer>

@@ -16,6 +16,14 @@ import {
   resultRowHtml,
 } from "./presentation.js";
 import {
+  communityReportsHtml,
+  loungeKeyForRow,
+} from "./community.js";
+import {
+  fetchApprovedReports,
+  submitCommunityReport,
+} from "./community-client.js";
+import {
   configureLocalizedNames,
   displayCityName,
   displayCountryName,
@@ -25,7 +33,7 @@ import { readRecent, writeRecent } from "./storage.js";
 const state = {
   rows: [],
   query: "",
-  filters: { country: "", city: "", type: "", facility: "" },
+  filters: { region: "", country: "", city: "", type: "", facility: "" },
   sort: "relevance",
   page: 1,
   pageSize: 24,
@@ -41,11 +49,13 @@ const el = Object.fromEntries(
     "results-title", "result-summary", "loading-state", "error-state",
     "empty-state", "results",
     "prev-page", "next-page", "page-info", "open-filters", "filters",
-    "close-filters", "filter-form", "country-filter", "city-filter", "type-filter",
+    "close-filters", "filter-form", "region-filter", "country-filter", "city-filter", "type-filter",
     "facility-filter", "sort-filter", "page-size-filter", "clear-filters",
     "empty-clear", "retry-button", "download-button", "detail", "detail-content",
     "close-detail", "close-detail-icon",
     "airport-overview", "overview-code", "overview-name", "overview-meta",
+    "report-dialog", "report-form", "report-lounge", "report-status",
+    "close-report", "cancel-report", "submit-report", "report-photos",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
@@ -70,18 +80,26 @@ function setOptions(select, values, emptyLabel, label = (value) => value) {
   if (values.includes(current)) select.value = current;
 }
 
-function citiesForCountry(country) {
+function rowsForRegion(region) {
+  return state.rows.filter((row) => !region || row.region === region);
+}
+
+function countriesForRegion(region) {
+  return unique(rowsForRegion(region).map((row) => row.country));
+}
+
+function citiesForCountry(country, region = "") {
   return unique(
     state.rows
-      .filter((row) => !country || row.country === country)
+      .filter((row) => (!region || row.region === region) && (!country || row.country === country))
       .map((row) => row.city),
   );
 }
 
-function setCityOptions(country) {
+function setCityOptions(country, region = "") {
   setOptions(
     el["city-filter"],
-    citiesForCountry(country),
+    citiesForCountry(country, region),
     "全部城市",
     displayCityName,
   );
@@ -90,11 +108,11 @@ function setCityOptions(country) {
 function populateFilters() {
   setOptions(
     el["country-filter"],
-    unique(state.rows.map((row) => row.country)),
+    countriesForRegion(el["region-filter"].value),
     "全部國家／地區",
     displayCountryName,
   );
-  setCityOptions(el["country-filter"].value);
+  setCityOptions(el["country-filter"].value, el["region-filter"].value);
   const types = unique(state.rows.map((row) => row.type));
   const labels = new Map(state.rows.map((row) => [row.type, row.typeLabel]));
   setOptions(el["type-filter"], types, "全部類型", (value) => labels.get(value) ?? value);
@@ -194,9 +212,24 @@ function syncQuickFilterState(type) {
   });
 }
 
+function syncRegionShortcutState(region) {
+  document.querySelectorAll("[data-quick-region]").forEach((button) => {
+    const active = button.dataset.quickRegion === region;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
 function syncFilterControls() {
+  el["region-filter"].value = state.filters.region;
+  setOptions(
+    el["country-filter"],
+    countriesForRegion(state.filters.region),
+    "全部國家／地區",
+    displayCountryName,
+  );
   el["country-filter"].value = state.filters.country;
-  setCityOptions(state.filters.country);
+  setCityOptions(state.filters.country, state.filters.region);
   el["city-filter"].value = state.filters.city;
   el["type-filter"].value = state.filters.type;
   el["facility-filter"].value = state.filters.facility;
@@ -205,12 +238,13 @@ function syncFilterControls() {
 }
 
 function resetFilters() {
-  state.filters = { country: "", city: "", type: "", facility: "" };
+  state.filters = { region: "", country: "", city: "", type: "", facility: "" };
   state.sort = "relevance";
   state.page = 1;
   state.pageSize = 24;
   syncFilterControls();
   syncQuickFilterState("");
+  syncRegionShortcutState("");
   render();
 }
 
@@ -235,6 +269,7 @@ function showDetail(index, trigger) {
   el["detail-content"].innerHTML = detailHtml(row);
   el.detail.showModal();
   el["close-detail"].focus();
+  renderCommunitySection(row);
 }
 
 function closeDetail() {
@@ -311,11 +346,24 @@ el["close-filters"].addEventListener("click", () => {
   syncFilterControls();
   el.filters.close();
 });
+el["region-filter"].addEventListener("change", () => {
+  setOptions(
+    el["country-filter"],
+    countriesForRegion(el["region-filter"].value),
+    "全部國家／地區",
+    displayCountryName,
+  );
+  if (el["country-filter"].value && !countriesForRegion(el["region-filter"].value).includes(el["country-filter"].value)) {
+    el["country-filter"].value = "";
+  }
+  setCityOptions(el["country-filter"].value, el["region-filter"].value);
+});
 el["country-filter"].addEventListener("change", () => {
-  setCityOptions(el["country-filter"].value);
+  setCityOptions(el["country-filter"].value, el["region-filter"].value);
 });
 el["filter-form"].addEventListener("submit", () => {
   state.filters = {
+    region: el["region-filter"].value,
     country: el["country-filter"].value,
     city: el["city-filter"].value,
     type: el["type-filter"].value,
@@ -325,6 +373,7 @@ el["filter-form"].addEventListener("submit", () => {
   state.pageSize = Number(el["page-size-filter"].value);
   state.page = 1;
   syncQuickFilterState(state.filters.type);
+  syncRegionShortcutState(state.filters.region);
   render();
 });
 el["clear-filters"].addEventListener("click", resetFilters);
@@ -366,5 +415,105 @@ document.querySelectorAll("[data-quick-type]").forEach((button) => {
     render();
   });
 });
+document.querySelectorAll("[data-quick-region]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const nextRegion = state.filters.region === button.dataset.quickRegion
+      ? ""
+      : button.dataset.quickRegion;
+    state.filters.region = nextRegion;
+    state.filters.country = "";
+    state.filters.city = "";
+    state.page = 1;
+    syncFilterControls();
+    syncRegionShortcutState(nextRegion);
+    render();
+  });
+});
+
+function reportFormData() {
+  const data = Object.fromEntries(new FormData(el["report-form"]).entries());
+  return {
+    nickname: data.nickname,
+    email: data.email,
+    visitDate: data.visitDate,
+    airlineFlight: data.airlineFlight,
+    cabinClass: data.cabinClass,
+    accessSource: data.accessSource,
+    entryResult: data.entryResult,
+    queueLevel: data.queueLevel,
+    crowdLevel: data.crowdLevel,
+    foodRating: data.foodRating,
+    restRating: data.restRating,
+    overallRating: data.overallRating,
+    body: data.body,
+  };
+}
+
+async function renderCommunitySection(row) {
+  const target = el["detail-content"].querySelector("[data-community-mount]");
+  if (!target) return;
+  target.innerHTML = communityReportsHtml([]);
+  try {
+    const result = await fetchApprovedReports(row);
+    if (!result.enabled) {
+      target.querySelector(".community-empty").textContent =
+        "旅客回報後端尚未設定；目前只能查看官方資料。";
+      return;
+    }
+    target.innerHTML = communityReportsHtml(result.reports);
+  } catch {
+    target.innerHTML = `<section class="community-section" data-community-section>
+      <div class="community-heading"><div><p class="kicker">Traveler data points</p><h3>旅客 Data Points</h3></div>
+      <button class="secondary-button" type="button" data-open-report-form>分享你的體驗</button></div>
+      <p class="community-empty">旅客回報暫時載入失敗，不影響官方資料查詢。</p>
+    </section>`;
+  }
+}
+
+function openReportDialog() {
+  if (!state.selected) return;
+  el["report-form"].reset();
+  el["report-status"].textContent = navigator.onLine
+    ? "送出後會先進入待審，不會立即公開。"
+    : "目前離線，請恢復網路後再投稿。";
+  el["submit-report"].disabled = !navigator.onLine;
+  el["report-lounge"].textContent =
+    `${state.selected.airportCode} · ${state.selected.name} · 投稿需審核後才會公開。`;
+  el["report-dialog"].showModal();
+}
+
+el["detail-content"].addEventListener("click", (event) => {
+  if (event.target.closest("[data-open-report-form]")) openReportDialog();
+});
+el["close-report"].addEventListener("click", () => el["report-dialog"].close());
+el["cancel-report"].addEventListener("click", () => el["report-dialog"].close());
+el["report-form"].addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!state.selected) return;
+  if (!navigator.onLine) {
+    el["report-status"].textContent = "目前離線，請恢復網路後再投稿。";
+    return;
+  }
+  el["submit-report"].disabled = true;
+  el["report-status"].textContent = "正在送出…";
+  const photos = Array.from(el["report-photos"].files ?? []);
+  const result = await submitCommunityReport(state.selected, reportFormData(), photos);
+  if (result.ok) {
+    el["report-status"].textContent = result.message;
+    el["report-form"].reset();
+  } else {
+    const fieldErrors = Object.values(result.errors ?? {});
+    const photoErrors = result.photoErrors ?? [];
+    el["report-status"].textContent =
+      [...fieldErrors, ...photoErrors].join(" ") || result.message || "投稿失敗，請稍後再試。";
+  }
+  el["submit-report"].disabled = false;
+});
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js", { type: "module" }).catch(() => {});
+  });
+}
 
 loadData();

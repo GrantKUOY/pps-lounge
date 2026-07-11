@@ -85,5 +85,6 @@ export function detailHtml(row) {
       <div class="raw-section"><h3>Conditions</h3><p>${escapeHtml(row.conditions || "Not provided")}</p></div>
     </details>
     ${officialLink}
+    <div data-community-mount></div>
     <p class="data-note">資料可能變動；出發前請以 Priority Pass 官方頁面及現場公告為準。</p>`;
 }
