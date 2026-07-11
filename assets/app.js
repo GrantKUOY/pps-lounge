@@ -56,12 +56,14 @@ const el = Object.fromEntries(
     "airport-overview", "overview-code", "overview-name", "overview-meta",
     "report-dialog", "report-form", "report-lounge", "report-status",
     "close-report", "cancel-report", "submit-report", "report-photos",
+    "pwa-install", "pwa-install-button", "pwa-offline", "pwa-update", "pwa-update-button",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
 let searchTimer;
 let detailTrigger = null;
 let photoLightbox = null;
+let installPromptEvent = null;
 
 function unique(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) =>
@@ -306,6 +308,51 @@ function closePhotoLightbox() {
   photoLightbox.close();
   photoLightbox.querySelector("img").removeAttribute("src");
   document.body.classList.remove("photo-lightbox-open");
+}
+
+function isStandaloneDisplay() {
+  return window.matchMedia?.("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+}
+
+function showInstallPrompt(event) {
+  if (isStandaloneDisplay()) return;
+  event.preventDefault?.();
+  installPromptEvent = event;
+  el["pwa-install"].hidden = false;
+}
+
+async function promptInstall() {
+  if (!installPromptEvent) return;
+  const event = installPromptEvent;
+  installPromptEvent = null;
+  el["pwa-install"].hidden = true;
+  await event.prompt?.();
+  await event.userChoice?.catch?.(() => null);
+}
+
+function syncOfflineNotice() {
+  el["pwa-offline"].hidden = navigator.onLine;
+}
+
+function showUpdateNotice() {
+  el["pwa-update"].hidden = false;
+}
+
+function wirePwaEnhancements() {
+  window.addEventListener("beforeinstallprompt", showInstallPrompt);
+  el["pwa-install-button"].addEventListener("click", () => {
+    promptInstall().catch(() => {
+      el["pwa-install"].hidden = true;
+    });
+  });
+
+  syncOfflineNotice();
+  window.addEventListener("online", syncOfflineNotice);
+  window.addEventListener("offline", syncOfflineNotice);
+
+  window.addEventListener("pps-update-ready", showUpdateNotice);
+  el["pwa-update-button"].addEventListener("click", () => window.location.reload());
 }
 
 function scrollResultsIntoView() {
@@ -560,8 +607,23 @@ el["report-form"].addEventListener("submit", async (event) => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js", { type: "module" }).catch(() => {});
+    navigator.serviceWorker.register("sw.js", { type: "module" }).then((registration) => {
+      if (registration.waiting && navigator.serviceWorker.controller) showUpdateNotice();
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        if (!worker) return;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            showUpdateNotice();
+          }
+        });
+      });
+    }).catch(() => {});
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (navigator.serviceWorker.controller) showUpdateNotice();
+    });
   });
 }
 
+wirePwaEnhancements();
 loadData();

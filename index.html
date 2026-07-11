@@ -18,6 +18,19 @@
     <span class="edition">GLOBAL AIRPORT EDIT · 中文</span>
     <button class="quiet-button" id="download-button" type="button" disabled>匯出 CSV</button>
   </header>
+  <section class="pwa-status" aria-live="polite" aria-label="App 狀態">
+    <div id="pwa-install" class="pwa-banner" hidden>
+      <p>可加入主畫面，之後像 App 一樣開啟。</p>
+      <button id="pwa-install-button" class="secondary-button" type="button">加入主畫面</button>
+    </div>
+    <div id="pwa-offline" class="pwa-banner" hidden>
+      <p>目前離線，仍可查詢已快取資料；投稿需要恢復網路。</p>
+    </div>
+    <div id="pwa-update" class="pwa-banner" hidden>
+      <p>新版已可用，重新整理後生效。</p>
+      <button id="pwa-update-button" class="secondary-button" type="button">重新整理</button>
+    </div>
+  </section>
 
   <main>
     <section class="intro" aria-labelledby="page-title">

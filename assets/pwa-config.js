@@ -1,4 +1,4 @@
-export const CACHE_NAME = "pps-journal-v2-1-public-v1";
+export const CACHE_NAME = "pps-journal-v2-1-public-v2";
 
 export const CACHE_URLS = [
   "./",

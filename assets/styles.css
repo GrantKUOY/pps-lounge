@@ -53,6 +53,35 @@ button:disabled { cursor: not-allowed; opacity: .45; }
   color: var(--oxblood);
   font-weight: 700;
 }
+.pwa-status {
+  position: sticky;
+  top: 58px;
+  z-index: 19;
+  display: grid;
+  gap: 8px;
+  width: min(1040px, calc(100% - 28px));
+  margin: 10px auto 0;
+}
+.pwa-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: rgba(250, 247, 239, .96);
+  box-shadow: 0 10px 24px rgba(32, 37, 34, .08);
+}
+.pwa-banner[hidden] {
+  display: none;
+}
+.pwa-banner p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
 main { width: min(1040px, 100%); margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px) 56px; }
 .intro { max-width: 660px; padding: clamp(26px, 6vw, 58px) 0 10px; }
 .kicker {
@@ -471,6 +500,9 @@ footer { width: min(1040px, 100%); margin: 0 auto; padding: 0 24px 40px; color: 
 @media (max-width: 700px) {
   .masthead { grid-template-columns: 1fr auto; padding: 11px 14px; }
   .edition { display: none; }
+  .pwa-status { top: 52px; width: calc(100% - 12px); }
+  .pwa-banner { align-items: stretch; display: grid; }
+  .pwa-banner button { width: 100%; }
   main { padding-left: 14px; padding-right: 14px; }
   .intro { padding-top: 24px; }
   .intro h1 { font-size: 34px; }

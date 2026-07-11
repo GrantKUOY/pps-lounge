@@ -316,6 +316,33 @@ test("PWA manifest 與 service worker 可被載入且不快取 admin", async ({ 
   expect(swText).not.toContain("caches.match(\"admin");
 });
 
+test("PWA 顯示安裝、離線與更新提示", async ({ page, context }) => {
+  await page.goto("/");
+
+  await page.evaluate(() => {
+    const event = new Event("beforeinstallprompt");
+    event.prompt = () => {
+      window.__installPrompted = true;
+      return Promise.resolve();
+    };
+    event.userChoice = Promise.resolve({ outcome: "accepted" });
+    window.dispatchEvent(event);
+  });
+  await expect(page.getByText("可加入主畫面，之後像 App 一樣開啟。")).toBeVisible();
+  await page.getByRole("button", { name: "加入主畫面" }).click();
+  await expect.poll(() => page.evaluate(() => window.__installPrompted)).toBe(true);
+
+  await context.setOffline(true);
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await expect(page.getByText("目前離線，仍可查詢已快取資料；投稿需要恢復網路。")).toBeVisible();
+  await context.setOffline(false);
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await expect(page.getByText("目前離線，仍可查詢已快取資料；投稿需要恢復網路。")).toBeHidden();
+
+  await page.evaluate(() => window.dispatchEvent(new Event("pps-update-ready")));
+  await expect(page.getByText("新版已可用，重新整理後生效。")).toBeVisible();
+});
+
 test("無結果時提供清除操作", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("搜尋機場").fill("ZZZZ-NOT-FOUND");
