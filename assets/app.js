@@ -61,6 +61,7 @@ const el = Object.fromEntries(
 
 let searchTimer;
 let detailTrigger = null;
+let photoLightbox = null;
 
 function unique(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) =>
@@ -276,6 +277,37 @@ function closeDetail() {
   el.detail.close();
 }
 
+function ensurePhotoLightbox() {
+  if (photoLightbox) return photoLightbox;
+  const lightbox = document.createElement("dialog");
+  lightbox.className = "photo-lightbox";
+  lightbox.innerHTML = `<button class="photo-lightbox-surface" type="button" aria-label="關閉照片預覽">
+    <img alt="">
+  </button>`;
+  document.body.append(lightbox);
+  lightbox.addEventListener("click", closePhotoLightbox);
+  photoLightbox = lightbox;
+  return photoLightbox;
+}
+
+function openPhotoLightbox(src, alt = "旅客上傳照片") {
+  if (!src) return;
+  const lightbox = ensurePhotoLightbox();
+  const image = lightbox.querySelector("img");
+  image.src = src;
+  image.alt = alt;
+  if (!lightbox.open) lightbox.showModal();
+  document.body.classList.add("photo-lightbox-open");
+  lightbox.querySelector("button").focus();
+}
+
+function closePhotoLightbox() {
+  if (!photoLightbox || !photoLightbox.open) return;
+  photoLightbox.close();
+  photoLightbox.querySelector("img").removeAttribute("src");
+  document.body.classList.remove("photo-lightbox-open");
+}
+
 function scrollResultsIntoView() {
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")
     .matches;
@@ -483,7 +515,18 @@ function openReportDialog() {
 }
 
 el["detail-content"].addEventListener("click", (event) => {
+  const photoButton = event.target.closest("[data-lightbox-src]");
+  if (photoButton) {
+    openPhotoLightbox(
+      photoButton.dataset.lightboxSrc,
+      photoButton.querySelector("img")?.alt,
+    );
+    return;
+  }
   if (event.target.closest("[data-open-report-form]")) openReportDialog();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closePhotoLightbox();
 });
 el["close-report"].addEventListener("click", () => el["report-dialog"].close());
 el["cancel-report"].addEventListener("click", () => el["report-dialog"].close());

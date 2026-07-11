@@ -162,8 +162,11 @@ export function communityReportsHtml(reports = []) {
   const cards = approved.map((report) => {
     const photos = (report.photos ?? []).slice(0, 5).map((photo) => {
       const url = escapeHtml(photo.publicUrl ?? photo.public_url ?? "");
+      const alt = escapeHtml(photo.alt || "旅客上傳照片");
       if (!url) return "";
-      return `<img src="${url}" alt="${escapeHtml(photo.alt || "旅客上傳照片")}" loading="lazy">`;
+      return `<button class="community-photo-button" type="button" data-lightbox-src="${url}" aria-label="放大照片：${alt}">
+        <img src="${url}" alt="${alt}" loading="lazy">
+      </button>`;
     }).join("");
     return `<article class="community-report">
       <div class="community-report-meta">

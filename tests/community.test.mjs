@@ -127,6 +127,27 @@ test("旅客 Data Points 呈現 approved 投稿且不輸出 email", () => {
   assert.doesNotMatch(html, /grant@example.com/);
 });
 
+test("旅客照片縮圖可開啟大圖 lightbox", () => {
+  const html = communityReportsHtml([
+    {
+      id: "r1",
+      nickname: "GrantK",
+      visitDate: "2026-07-10",
+      entryResult: "success",
+      queueLevel: "short",
+      crowdLevel: "busy",
+      foodRating: 3,
+      overallRating: 4,
+      body: "晚上人不少。",
+      status: "approved",
+      photos: [{ publicUrl: "https://example.com/photo.jpg", alt: "餐點" }],
+    },
+  ]);
+
+  assert.match(html, /data-lightbox-src="https:\/\/example\.com\/photo\.jpg"/);
+  assert.match(html, /aria-label="放大照片：餐點"/);
+});
+
 test("Storage 上傳 policy 使用 security definer 檢查 pending report", () => {
   const migration = readFileSync(
     new URL("../supabase/migrations/20260711_lounge_reports.sql", import.meta.url),
