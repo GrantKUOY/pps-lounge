@@ -7,6 +7,7 @@ import {
   validateReportDraft,
   validateReportPhotos,
 } from "../assets/community.js";
+import { readFileSync } from "node:fs";
 
 test("投稿草稿驗證必填欄位、評分範圍並預設 pending", () => {
   const result = validateReportDraft({
@@ -123,4 +124,16 @@ test("旅客 Data Points 呈現 approved 投稿且不輸出 email", () => {
   assert.match(html, /整體 4\/5/);
   assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
   assert.doesNotMatch(html, /grant@example.com/);
+});
+
+test("Storage 上傳 policy 使用 security definer 檢查 pending report", () => {
+  const migration = readFileSync(
+    new URL("../supabase/migrations/20260711_lounge_reports.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(migration, /create or replace function public\.can_upload_lounge_report_photo/);
+  assert.match(migration, /security definer/);
+  assert.match(migration, /to anon/);
+  assert.match(migration, /public\.can_upload_lounge_report_photo\(storage\.objects\.name\)/);
 });

@@ -201,6 +201,51 @@ test("詳情顯示旅客 Data Points 區塊並可開啟待審投稿表單", asyn
   await expect(page.getByText("投稿送出後會先進入待審")).toBeVisible();
 });
 
+test("投稿 API 失敗時顯示錯誤並恢復送出按鈕", async ({ page }) => {
+  await page.route("**/api/community-config", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        enabled: true,
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon-key",
+        maxPhotoSize: 5242880,
+      }),
+    });
+  });
+  await page.route("https://example.supabase.co/**", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "forced failure" }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("搜尋機場").fill("TPE");
+  await page.locator(".result-row").filter({
+    hasText: "Oriental Club Lounge",
+  }).getByRole("button", { name: "查看詳情" }).click();
+  await page.getByRole("button", { name: "分享你的體驗" }).click();
+
+  const report = page.getByRole("dialog", { name: "分享你的體驗" });
+  await report.getByLabel("暱稱").fill("Louise");
+  await report.getByLabel("Email（不公開）").fill("grantkuo.1@gmail.com");
+  await report.getByLabel("到訪日期").fill("2026-07-06");
+  await report.getByLabel("入場結果").selectOption("success");
+  await report.getByLabel("排隊狀況").selectOption("none");
+  await report.getByLabel("擁擠程度").selectOption("quiet");
+  await report.getByLabel("餐飲評價").selectOption("5");
+  await report.getByLabel("休息／安靜程度").selectOption("4");
+  await report.getByLabel("整體評分").selectOption("5");
+  await report.getByLabel("文字心得").fill("牛肉麵口感很棒");
+
+  const submit = report.getByRole("button", { name: "送出待審" });
+  await submit.click();
+  await expect(page.locator("#report-status")).toHaveText("投稿失敗，請稍後再試。");
+  await expect(submit).toBeEnabled();
+});
+
 test("PWA manifest 與 service worker 可被載入且不快取 admin", async ({ page }) => {
   await page.goto("/");
   const manifestHref = await page.locator("link[rel='manifest']").getAttribute("href");

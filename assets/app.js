@@ -497,17 +497,22 @@ el["report-form"].addEventListener("submit", async (event) => {
   el["submit-report"].disabled = true;
   el["report-status"].textContent = "正在送出…";
   const photos = Array.from(el["report-photos"].files ?? []);
-  const result = await submitCommunityReport(state.selected, reportFormData(), photos);
-  if (result.ok) {
-    el["report-status"].textContent = result.message;
-    el["report-form"].reset();
-  } else {
-    const fieldErrors = Object.values(result.errors ?? {});
-    const photoErrors = result.photoErrors ?? [];
-    el["report-status"].textContent =
-      [...fieldErrors, ...photoErrors].join(" ") || result.message || "投稿失敗，請稍後再試。";
+  try {
+    const result = await submitCommunityReport(state.selected, reportFormData(), photos);
+    if (result.ok) {
+      el["report-status"].textContent = result.message;
+      el["report-form"].reset();
+    } else {
+      const fieldErrors = Object.values(result.errors ?? {});
+      const photoErrors = result.photoErrors ?? [];
+      el["report-status"].textContent =
+        [...fieldErrors, ...photoErrors].join(" ") || result.message || "投稿失敗，請稍後再試。";
+    }
+  } catch {
+    el["report-status"].textContent = "投稿失敗，請稍後再試。";
+  } finally {
+    el["submit-report"].disabled = false;
   }
-  el["submit-report"].disabled = false;
 });
 
 if ("serviceWorker" in navigator) {

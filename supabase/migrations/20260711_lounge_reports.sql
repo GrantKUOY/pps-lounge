@@ -67,16 +67,28 @@ using (
 );
 
 drop policy if exists "public can insert report photos" on public.lounge_report_photos;
+create or replace function public.can_attach_lounge_report_photo(report_uuid uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.lounge_reports
+    where id = report_uuid
+      and status = 'pending'
+  );
+$$;
+
+grant execute on function public.can_attach_lounge_report_photo(uuid) to anon;
+
 create policy "public can insert report photos"
 on public.lounge_report_photos
 for insert
-with check (
-  exists (
-    select 1 from public.lounge_reports
-    where lounge_reports.id = lounge_report_photos.report_id
-      and lounge_reports.status = 'pending'
-  )
-);
+to anon
+with check (public.can_attach_lounge_report_photo(report_id));
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -89,16 +101,40 @@ values (
 on conflict (id) do nothing;
 
 drop policy if exists "public can upload pending report photos" on storage.objects;
+create or replace function public.can_upload_lounge_report_photo(object_name text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  report_id_text text := split_part(object_name, '/', 2);
+  report_uuid uuid;
+begin
+  if split_part(object_name, '/', 1) <> 'pending' then
+    return false;
+  end if;
+
+  begin
+    report_uuid := report_id_text::uuid;
+  exception when invalid_text_representation then
+    return false;
+  end;
+
+  return public.can_attach_lounge_report_photo(report_uuid);
+end;
+$$;
+
+grant execute on function public.can_upload_lounge_report_photo(text) to anon;
+
 create policy "public can upload pending report photos"
 on storage.objects
 for insert
+to anon
 with check (
   bucket_id = 'lounge-report-photos'
-  and exists (
-    select 1 from public.lounge_reports
-    where lounge_reports.id::text = split_part(storage.objects.name, '/', 2)
-      and lounge_reports.status = 'pending'
-  )
+  and public.can_upload_lounge_report_photo(storage.objects.name)
 );
 
 drop policy if exists "public can read report photos" on storage.objects;
