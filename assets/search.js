@@ -21,10 +21,25 @@ const europeCountries = new Set([
   "United Kingdom",
 ]);
 
+const northAmericaCountries = new Set([
+  "Antigua and Barbuda", "Aruba", "Bahamas", "Barbados", "Bermuda",
+  "Canada", "Costa Rica", "Curacao", "Dominica", "Dominican Republic",
+  "El Salvador", "Grenada", "Guatemala", "Honduras", "Jamaica", "Mexico",
+  "Panama", "Puerto Rico", "Saint Lucia", "Sint Maarten",
+  "Trinidad and Tobago", "United States of America",
+]);
+
+const southAmericaCountries = new Set([
+  "Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Ecuador",
+  "Guyana", "Paraguay", "Peru", "Uruguay", "Venezuela",
+]);
+
 export function regionForRecord(row) {
   if (row.region) return row.region;
   if (row.isAsia === true || asiaCountries.has(row.country)) return "asia";
   if (row.isEurope === true || europeCountries.has(row.country)) return "europe";
+  if (northAmericaCountries.has(row.country)) return "north-america";
+  if (southAmericaCountries.has(row.country)) return "south-america";
   return "";
 }
 

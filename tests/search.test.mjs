@@ -49,6 +49,26 @@ const rows = [
     facilities: ["Wi-Fi"],
     searchText: "法蘭克福 frankfurt",
   },
+  {
+    airportCode: "JFK",
+    airportName: "John F Kennedy International Airport",
+    city: "New York",
+    country: "United States of America",
+    name: "Lounge E",
+    type: "LOUNGE",
+    facilities: ["Wi-Fi"],
+    searchText: "紐約 new york",
+  },
+  {
+    airportCode: "GRU",
+    airportName: "Sao Paulo Guarulhos International Airport",
+    city: "Sao Paulo",
+    country: "Brazil",
+    name: "Lounge F",
+    type: "EAT",
+    facilities: ["Wi-Fi"],
+    searchText: "聖保羅 sao paulo",
+  },
 ];
 
 const indexed = createSearchIndex(rows);
@@ -97,21 +117,32 @@ test("地區篩選可與類型篩選疊加", () => {
   assert.deepEqual(found.map((row) => row.airportCode), ["TSA", "TPE"]);
 });
 
+test("北美洲與南美洲地區篩選可依國家歸類", () => {
+  assert.deepEqual(
+    filterRecords(indexed, { region: "north-america" }).map((row) => row.airportCode),
+    ["JFK"],
+  );
+  assert.deepEqual(
+    filterRecords(indexed, { region: "south-america" }).map((row) => row.airportCode),
+    ["GRU"],
+  );
+});
+
 test("依機場代碼排序", () => {
   assert.deepEqual(
     sortRecords(indexed, "airportCode").map((row) => row.airportCode),
-    ["FRA", "NRT", "TPE", "TSA"],
+    ["FRA", "GRU", "JFK", "NRT", "TPE", "TSA"],
   );
 });
 
 test("分頁會限制頁碼並回報範圍", () => {
   assert.deepEqual(paginate(indexed, 5, 2), {
-    page: 2,
+    page: 3,
     pageSize: 2,
-    totalPages: 2,
-    totalItems: 4,
-    start: 3,
-    end: 4,
-    rows: [indexed[2], indexed[3]],
+    totalPages: 3,
+    totalItems: 6,
+    start: 5,
+    end: 6,
+    rows: [indexed[4], indexed[5]],
   });
 });

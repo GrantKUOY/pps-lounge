@@ -163,6 +163,27 @@ test("地區捷徑可篩選亞洲並同步進階篩選", async ({ page }) => {
   await expect(page.getByLabel("國家／地區").locator("option[value='Germany']")).toHaveCount(0);
 });
 
+test("地區捷徑可篩選北美洲與南美洲並同步進階篩選", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "北美洲" }).click();
+  await expect(page.getByRole("button", { name: "北美洲" }))
+    .toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  await expect(page.locator("#region-filter")).toHaveValue("north-america");
+  await expect(page.getByLabel("國家／地區").locator("option[value='United States of America']")).toHaveCount(1);
+  await expect(page.getByLabel("國家／地區").locator("option[value='Germany']")).toHaveCount(0);
+  await page.getByRole("button", { name: "關閉篩選" }).click();
+
+  await page.getByRole("button", { name: "南美洲" }).click();
+  await expect(page.getByRole("button", { name: "南美洲" }))
+    .toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "進階篩選" }).click();
+  await expect(page.locator("#region-filter")).toHaveValue("south-america");
+  await expect(page.getByLabel("國家／地區").locator("option[value='Brazil']")).toHaveCount(1);
+  await expect(page.getByLabel("國家／地區").locator("option[value='United States of America']")).toHaveCount(0);
+});
+
 test("詳情顯示旅客 Data Points 區塊並可開啟待審投稿表單", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("搜尋機場").fill("TPE");

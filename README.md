@@ -1,6 +1,6 @@
 # PPS Lounge v2.1
 
-手機優先的 Priority Pass 全球機場據點中文查詢網站。v2.1 在 PPS Aviation Journal 視覺方向上加入 Community Data Points、A+ 待審投稿流程、輕量 PWA 與亞洲／歐洲地區捷徑。
+手機優先的 Priority Pass 全球機場據點中文查詢網站。v2.1 在 PPS Aviation Journal 視覺方向上加入 Community Data Points、A+ 待審投稿流程、輕量 PWA 與亞洲／歐洲／北美洲／南美洲地區捷徑。
 
 ## 隔離說明
 
@@ -87,6 +87,8 @@ v2.1 補回 v1 使用者熟悉的地區入口，但不恢復 `asiaOnly` / `europ
 
 - 亞洲（含中東）
 - 歐洲
+- 北美洲
+- 南美洲
 
 地區可與類型、國家、城市、設施篩選疊加。
 
