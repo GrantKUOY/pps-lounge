@@ -136,6 +136,36 @@ export function formatConditions(value) {
   return [...new Set(output)].join("\n") || "未提供";
 }
 
+const VERIFIED_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const STALE_VERIFIED_DAYS = 180;
+
+export function verifiedLabel(row, now = new Date()) {
+  const fallback = "本筆資料未逐筆查證，請以官網為準";
+  const value = row?.last_verified;
+  if (typeof value !== "string" || !VERIFIED_DATE_PATTERN.test(value)) {
+    return fallback;
+  }
+  const verifiedAt = new Date(`${value}T00:00:00Z`);
+  if (
+    Number.isNaN(verifiedAt.getTime()) ||
+    verifiedAt.toISOString().slice(0, 10) !== value
+  ) {
+    return fallback;
+  }
+  const reference =
+    now instanceof Date && !Number.isNaN(now.getTime()) ? now : new Date();
+  const todayUtc = Date.UTC(
+    reference.getUTCFullYear(),
+    reference.getUTCMonth(),
+    reference.getUTCDate(),
+  );
+  const ageDays = Math.floor(
+    (todayUtc - verifiedAt.getTime()) / 86_400_000,
+  );
+  const label = `資料查證：${value.slice(0, 7)}`;
+  return ageDays > STALE_VERIFIED_DAYS ? `${label}（待複核）` : label;
+}
+
 export function safeExternalUrl(value) {
   if (!value) return "";
   try {

@@ -6,6 +6,7 @@ import {
   formatOpeningHours,
   formatTerminal,
   safeExternalUrl,
+  verifiedLabel,
 } from "./formatters.js";
 
 const priorityFacilities = ["Showers", "Wi-Fi", "Flight information"];
@@ -56,7 +57,7 @@ export function resultRowHtml(row) {
   </article>`;
 }
 
-export function detailHtml(row) {
+export function detailHtml(row, now = new Date()) {
   const safeUrl = safeExternalUrl(row.url);
   const officialUrl = safeUrl && [
     "www.prioritypass.com",
@@ -75,6 +76,7 @@ export function detailHtml(row) {
       <p>${escapeHtml(row.airportName)} · ${escapeHtml(formatTerminal(row.terminal))}</p>
     </header>
     <p class="data-note">非官方整理站，入場資格與營業狀態以 Priority Pass 官網及現場公告為準。</p>
+    <p class="data-note">${escapeHtml(verifiedLabel(row, now))}</p>
     <dl class="detail-facts">
       <div class="detail-fact"><dt>位置</dt><dd>${escapeHtml(formatLocation(row.location))}</dd></div>
       <div class="detail-fact"><dt>營業時間</dt><dd>${escapeHtml(formatOpeningHours(row.openingHours))}</dd></div>

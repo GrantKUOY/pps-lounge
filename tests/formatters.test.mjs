@@ -7,6 +7,7 @@ import {
   formatOpeningHours,
   formatTerminal,
   safeExternalUrl,
+  verifiedLabel,
 } from "../assets/formatters.js";
 
 test("HTML 特殊字元會完整跳脫", () => {
@@ -28,6 +29,48 @@ test("常見使用條件轉為繁體中文", () => {
       "Maximum 3 hour stay - Children under 2 years are admitted free",
     ),
     "最長可停留 3 小時\n2 歲以下兒童可免費入場",
+  );
+});
+
+const NOW = new Date("2026-07-07T12:00:00Z");
+
+test("verifiedLabel：近期查證顯示資料查證年月", () => {
+  assert.equal(
+    verifiedLabel({ last_verified: "2026-06-15" }, NOW),
+    "資料查證：2026-06",
+  );
+});
+
+test("verifiedLabel：查證逾 180 天加註待複核", () => {
+  assert.equal(
+    verifiedLabel({ last_verified: "2025-12-01" }, NOW),
+    "資料查證：2025-12（待複核）",
+  );
+});
+
+test("verifiedLabel：恰滿 180 天不加註待複核", () => {
+  assert.equal(
+    verifiedLabel({ last_verified: "2026-01-08" }, NOW),
+    "資料查證：2026-01",
+  );
+});
+
+test("verifiedLabel：無查證日顯示未逐筆查證", () => {
+  assert.equal(
+    verifiedLabel({ last_verified: null }, NOW),
+    "本筆資料未逐筆查證，請以官網為準",
+  );
+  assert.equal(verifiedLabel({}, NOW), "本筆資料未逐筆查證，請以官網為準");
+});
+
+test("verifiedLabel：無效日期格式視為未查證", () => {
+  assert.equal(
+    verifiedLabel({ last_verified: "2026-02-30" }, NOW),
+    "本筆資料未逐筆查證，請以官網為準",
+  );
+  assert.equal(
+    verifiedLabel({ last_verified: "2026/06/15" }, NOW),
+    "本筆資料未逐筆查證，請以官網為準",
   );
 });
 

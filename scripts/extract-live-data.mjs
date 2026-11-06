@@ -153,8 +153,35 @@ for (const row of manualAdditions) {
   addedRows += 1;
 }
 
+// 查證三欄骨架（語意見 data/SCHEMA.md）：正式站快照與 pps-records.js
+// 都不含查證資訊，重新產生資料時必須從既有 data/lounges.json 以
+// identity key 保留已填的 last_verified / data_source / status_flag，
+// 其餘列一律補 null，確保重產不會掉欄或洗掉人工查證結果。
+const verificationFields = ["last_verified", "data_source", "status_flag"];
+const previousByIdentity = new Map();
+try {
+  const previousRows = JSON.parse(
+    await readFile("data/lounges.json", "utf8"),
+  );
+  for (const previous of previousRows) {
+    previousByIdentity.set(identityKey(previous), previous);
+  }
+} catch {
+  // 尚無既有產出（首次產生）時全部補 null。
+}
+let preservedVerifiedRows = 0;
+for (const row of rows) {
+  const previous = previousByIdentity.get(identityKey(row));
+  for (const field of verificationFields) {
+    row[field] = previous?.[field] ?? row[field] ?? null;
+  }
+  if (verificationFields.some((field) => row[field] !== null)) {
+    preservedVerifiedRows += 1;
+  }
+}
+
 await mkdir("data", { recursive: true });
 await writeFile("data/lounges.json", `${JSON.stringify(rows)}\n`, "utf8");
 console.log(
-  `wrote ${rows.length} rows; backfilled ${backfilledUrls} URLs; removed ${removedRows}; added ${addedRows} manually verified rows`,
+  `wrote ${rows.length} rows; backfilled ${backfilledUrls} URLs; removed ${removedRows}; added ${addedRows} manually verified rows; preserved verification fields on ${preservedVerifiedRows} rows`,
 );

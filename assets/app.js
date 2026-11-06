@@ -270,7 +270,7 @@ function showDetail(index, trigger) {
   detailTrigger = trigger;
   el.detail.setAttribute("aria-label", `${row.name} 詳情`);
   el["close-detail"].textContent = `← 返回 ${row.airportCode} 的搜尋結果`;
-  el["detail-content"].innerHTML = detailHtml(row);
+  el["detail-content"].innerHTML = detailHtml(row, new Date());
   el.detail.showModal();
   el["close-detail"].focus();
   if (FEATURES.community) renderCommunitySection(row);
