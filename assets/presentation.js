@@ -60,7 +60,7 @@ export function resultRowHtml(row, { firstParty = null } = {}) {
   </article>`;
 }
 
-export function detailHtml(row, now = new Date(), { hot = false, firstParty = null } = {}) {
+export function detailHtml(row, now = new Date(), { hot = false, firstParty = null, errorReportUrl = "" } = {}) {
   const safeUrl = safeExternalUrl(row.url);
   const officialUrl = safeUrl && [
     "www.prioritypass.com",
@@ -75,6 +75,11 @@ export function detailHtml(row, now = new Date(), { hot = false, firstParty = nu
   const blogUrl = firstParty ? safeExternalUrl(firstParty.articleUrl) : "";
   const firstPartyLink = blogUrl
     ? `<p><a class="official-link" href="${escapeHtml(blogUrl)}" target="_blank" rel="noreferrer noopener">看站長實測：${escapeHtml(firstParty.articleTitle ?? "")} ↗</a></p>`
+    : "";
+  // 錯誤回報改走外部表單連結（pps-error-report-config.js）；未設定或 URL 不合法時不顯示入口。
+  const reportUrl = safeExternalUrl(errorReportUrl);
+  const errorReportLink = reportUrl
+    ? `<p><a class="official-link" href="${escapeHtml(reportUrl)}" target="_blank" rel="noreferrer noopener">回報錯誤</a></p>`
     : "";
   // 非熱門據點不渲染 conditions 全文（版權收斂）：改指向官網，並移除原始英文的 Conditions 區塊。
   const conditionsFact = hot
@@ -101,7 +106,7 @@ export function detailHtml(row, now = new Date(), { hot = false, firstParty = nu
     <details class="raw-copy"><summary>查看原始英文</summary>
       <div class="raw-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></div>${rawConditions}
     </details>
-    ${officialLink}${firstPartyLink}
+    ${officialLink}${firstPartyLink}${errorReportLink}
     <div data-community-mount></div>
     <p class="data-note">資料可能變動；出發前請以 Priority Pass 官方頁面及現場公告為準。</p>`;
 }

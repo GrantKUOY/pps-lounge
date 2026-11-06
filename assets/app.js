@@ -280,6 +280,7 @@ function showDetail(index, trigger) {
   el["detail-content"].innerHTML = detailHtml(row, new Date(), {
     hot: state.hotAirports.has(String(row.airportCode).toUpperCase()),
     firstParty: matchFirstParty(row, state.firstParty),
+    errorReportUrl: globalThis.PPS_ERROR_REPORT_CONFIG?.formUrl ?? "",
   });
   el.detail.showModal();
   el["close-detail"].focus();

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  CACHE_NAME,
   CACHE_URLS,
   shouldHandleNavigation,
   shouldRuntimeCache,
@@ -12,6 +13,11 @@ test("PWA 預快取只包含公開靜態資源", () => {
   assert.ok(CACHE_URLS.includes("data/lounges.json"));
   assert.equal(CACHE_URLS.some((url) => url.includes("admin")), false);
   assert.equal(CACHE_URLS.some((url) => url.startsWith("api/")), false);
+});
+
+test("錯誤回報設定檔列入預快取且快取版本升至 v6", () => {
+  assert.ok(CACHE_URLS.includes("pps-error-report-config.js"));
+  assert.equal(CACHE_NAME, "pps-journal-v2-1-public-v6");
 });
 
 test("service worker 不處理 admin 與 API navigation", () => {

@@ -89,6 +89,31 @@ test("非熱門據點詳情收斂 conditions 呈現並保留官網連結", () =>
   }
 });
 
+test("錯誤回報連結：設定合法表單 URL 時詳情恰好出現一次且屬性安全", () => {
+  const formUrl = "https://docs.google.com/forms/d/e/TESTFORM/viewform";
+  const html = detailHtml(row, new Date(), { errorReportUrl: formUrl });
+  assert.equal(html.match(/回報錯誤/g)?.length, 1);
+  assert.match(
+    html,
+    /<a class="official-link" href="https:\/\/docs\.google\.com\/forms\/d\/e\/TESTFORM\/viewform" target="_blank" rel="noreferrer noopener">回報錯誤<\/a>/,
+  );
+});
+
+test("錯誤回報連結：未設定、空字串或 URL 不合法時不顯示且不影響其他內容", () => {
+  for (const html of [
+    detailHtml(row),
+    detailHtml(row, new Date(), {}),
+    detailHtml(row, new Date(), { errorReportUrl: "" }),
+    detailHtml(row, new Date(), { errorReportUrl: "   " }),
+    detailHtml(row, new Date(), { errorReportUrl: "javascript:alert(1)" }),
+    detailHtml(row, new Date(), { errorReportUrl: "http://example.com/form" }),
+    detailHtml(row, new Date(), { errorReportUrl: "not a url" }),
+  ]) {
+    assert.doesNotMatch(html, /回報錯誤/);
+    assert.match(html, /開啟 Priority Pass 官方頁面/);
+  }
+});
+
 test("熱門據點詳情維持 conditions 現行呈現", () => {
   const html = detailHtml(row, new Date(), { hot: true });
   assert.match(html, /最長可停留 3 小時/);
