@@ -15,6 +15,7 @@ import {
   detailHtml,
   resultRowHtml,
 } from "./presentation.js";
+import { matchFirstParty } from "./first-party.js";
 import {
   communityReportsHtml,
   loungeKeyForRow,
@@ -39,6 +40,7 @@ const state = {
   pageSize: 24,
   selected: null,
   hotAirports: new Set(),
+  firstParty: [],
   loading: true,
   error: null,
   currentRows: [],
@@ -198,7 +200,11 @@ function render() {
   renderAirportOverview(state.currentRows);
   const page = paginate(state.currentRows, state.page, state.pageSize);
   state.page = page.page;
-  el.results.innerHTML = page.rows.map(resultRowHtml).join("");
+  el.results.innerHTML = page.rows
+    .map((row) =>
+      resultRowHtml(row, { firstParty: matchFirstParty(row, state.firstParty) }),
+    )
+    .join("");
   el["empty-state"].hidden = state.currentRows.length > 0;
   el["result-summary"].textContent = state.currentRows.length
     ? `顯示第 ${page.start}–${page.end} 筆，共 ${page.totalItems} 筆結果。`
@@ -273,6 +279,7 @@ function showDetail(index, trigger) {
   el["close-detail"].textContent = `← 返回 ${row.airportCode} 的搜尋結果`;
   el["detail-content"].innerHTML = detailHtml(row, new Date(), {
     hot: state.hotAirports.has(String(row.airportCode).toUpperCase()),
+    firstParty: matchFirstParty(row, state.firstParty),
   });
   el.detail.showModal();
   el["close-detail"].focus();
@@ -510,6 +517,20 @@ async function loadPageScope() {
   }
 }
 
+async function loadFirstParty() {
+  try {
+    const response = await fetch("data/first-party.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const entries = await response.json();
+    if (Array.isArray(entries)) {
+      state.firstParty = entries;
+      render();
+    }
+  } catch {
+    // 實測接線是信任標記增強；載入失敗時無標記、無連結，不影響查詢主功能。
+  }
+}
+
 async function loadMeta() {
   try {
     const response = await fetch("data/meta.json", { cache: "no-cache" });
@@ -693,4 +714,5 @@ if ("serviceWorker" in navigator) {
 wirePwaEnhancements();
 loadMeta();
 loadPageScope();
+loadFirstParty();
 loadData();

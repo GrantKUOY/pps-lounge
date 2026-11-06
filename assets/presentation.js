@@ -34,7 +34,7 @@ export function airportOverview(rows, query) {
   };
 }
 
-export function resultRowHtml(row) {
+export function resultRowHtml(row, { firstParty = null } = {}) {
   if (!Number.isSafeInteger(row._searchOrder) || row._searchOrder < 0) {
     throw new TypeError("_searchOrder must be a non-negative safe integer");
   }
@@ -43,9 +43,12 @@ export function resultRowHtml(row) {
     .join("");
   const terminal = formatTerminal(row.terminal || row.location);
   const opening = formatOpeningHours(row.openingHours).split("\n")[0];
+  const firstPartyMark = firstParty
+    ? ` · <span class="first-party-mark">站長實測</span>`
+    : "";
 
   return `<article class="result-row">
-    <div class="result-kicker">${escapeHtml(terminal)} · ${escapeHtml(row.typeLabel)}</div>
+    <div class="result-kicker">${escapeHtml(terminal)} · ${escapeHtml(row.typeLabel)}${firstPartyMark}</div>
     <div class="result-body">
       <div>
         <h3>${escapeHtml(row.airportCode)} · ${escapeHtml(row.name)}</h3>
@@ -57,7 +60,7 @@ export function resultRowHtml(row) {
   </article>`;
 }
 
-export function detailHtml(row, now = new Date(), { hot = false } = {}) {
+export function detailHtml(row, now = new Date(), { hot = false, firstParty = null } = {}) {
   const safeUrl = safeExternalUrl(row.url);
   const officialUrl = safeUrl && [
     "www.prioritypass.com",
@@ -69,6 +72,10 @@ export function detailHtml(row, now = new Date(), { hot = false } = {}) {
   const officialLink = officialUrl
     ? `<a class="official-link" href="${escapeHtml(officialUrl)}" target="_blank" rel="noreferrer noopener">開啟 Priority Pass 官方頁面 ↗</a>`
     : '<p class="official-missing">目前沒有可用的官方詳情連結。</p>';
+  const blogUrl = firstParty ? safeExternalUrl(firstParty.articleUrl) : "";
+  const firstPartyLink = blogUrl
+    ? `<p><a class="official-link" href="${escapeHtml(blogUrl)}" target="_blank" rel="noreferrer noopener">看站長實測：${escapeHtml(firstParty.articleTitle ?? "")} ↗</a></p>`
+    : "";
   // 非熱門據點不渲染 conditions 全文（版權收斂）：改指向官網，並移除原始英文的 Conditions 區塊。
   const conditionsFact = hot
     ? `<div class="detail-fact"><dt>使用條件</dt><dd>${escapeHtml(formatConditions(row.conditions))}</dd></div>`
@@ -94,7 +101,7 @@ export function detailHtml(row, now = new Date(), { hot = false } = {}) {
     <details class="raw-copy"><summary>查看原始英文</summary>
       <div class="raw-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></div>${rawConditions}
     </details>
-    ${officialLink}
+    ${officialLink}${firstPartyLink}
     <div data-community-mount></div>
     <p class="data-note">資料可能變動；出發前請以 Priority Pass 官方頁面及現場公告為準。</p>`;
 }

@@ -27,6 +27,7 @@ import {
   displayCityName,
   displayCountryName,
 } from "../assets/localized-names.js";
+import { matchFirstParty } from "../assets/first-party.js";
 import { buildLoungeSlugs } from "./slug.mjs";
 
 const SITE_ORIGIN = "https://pps-lounge.vercel.app";
@@ -40,6 +41,7 @@ const readJson = (relative) =>
 
 const rows = readJson("data/lounges.json");
 const scope = readJson("data/page-scope.json");
+const firstPartyEntries = readJson("data/first-party.json");
 const meta = readJson("data/meta.json");
 const dataUpdatedAt = meta.dataUpdatedAt;
 const referenceNow = new Date(`${dataUpdatedAt}T00:00:00Z`);
@@ -77,6 +79,23 @@ function officialLink(row) {
   return officialUrl
     ? `<a class="official-link" href="${escapeHtml(officialUrl)}" target="_blank" rel="noreferrer noopener">開啟 Priority Pass 官方頁面 ↗</a>`
     : '<p class="official-missing">目前沒有可用的官方詳情連結。</p>';
+}
+
+// 第一方實測接線：命中對照檔的據點回連部落格實測文。
+function firstPartyFor(row) {
+  const entry = matchFirstParty(row, firstPartyEntries);
+  if (!entry) return null;
+  const url = safeExternalUrl(entry.articleUrl);
+  return url ? { ...entry, articleUrl: url } : null;
+}
+
+function firstPartyMark(entry) {
+  return entry ? ` · <span class="first-party-mark">站長實測</span>` : "";
+}
+
+function firstPartyLink(entry, indent = "    ") {
+  if (!entry) return "";
+  return `\n${indent}<p><a class="official-link" href="${escapeHtml(entry.articleUrl)}" target="_blank" rel="noreferrer noopener">看站長實測：${escapeHtml(entry.articleTitle ?? "")} ↗</a></p>`;
 }
 
 function pageHead({ title, description, canonical }) {
@@ -132,13 +151,17 @@ function airportPage(code, airportRows) {
   const listItems = sorted
     .map((row) => {
       const slug = slugs[rows.indexOf(row)];
+      const firstParty = firstPartyFor(row);
+      const articleLink = firstParty
+        ? `\n          <p><a class="text-action" href="${escapeHtml(firstParty.articleUrl)}" target="_blank" rel="noreferrer noopener">看站長實測：${escapeHtml(firstParty.articleTitle ?? "")} →</a></p>`
+        : "";
       return `      <article class="result-row">
-        <p class="result-kicker">${escapeHtml(formatTerminal(row.terminal))} · ${escapeHtml(row.typeLabel)}</p>
+        <p class="result-kicker">${escapeHtml(formatTerminal(row.terminal))} · ${escapeHtml(row.typeLabel)}${firstPartyMark(firstParty)}</p>
         <div class="result-body"><div>
           <h3><a href="../../lounge/${slug}/">${escapeHtml(row.name)}</a></h3>
           <p>${escapeHtml(formatLocation(row.location))}</p>
         </div></div>
-        <p>營業時間：${multiline(formatOpeningHours(row.openingHours))}</p>
+        <p>營業時間：${multiline(formatOpeningHours(row.openingHours))}</p>${articleLink}
       </article>`;
     })
     .join("\n");
@@ -203,7 +226,7 @@ ${masthead}
       <div class="detail-fact"><dt>使用條件（節錄）</dt><dd>${multiline(conditionsExcerpt(row.conditions))}</dd></div>
     </dl>
     <p class="data-note">條件節錄，完整條件以官網為準。</p>
-    ${officialLink(row)}
+    ${officialLink(row)}${firstPartyLink(firstPartyFor(row))}
     <p><a class="text-action" href="../../airport/${codeLower}/">回 ${escapeHtml(code)} 機場頁 →</a>　<a class="text-action" href="../../">回主站搜尋</a></p>
     <p class="data-note">資料可能變動；出發前請以 Priority Pass 官方頁面及現場公告為準。</p>
   </main>
