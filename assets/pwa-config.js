@@ -1,4 +1,4 @@
-export const CACHE_NAME = "pps-journal-v2-1-public-v2";
+export const CACHE_NAME = "pps-journal-v2-1-public-v3";
 
 export const CACHE_URLS = [
   "./",
@@ -6,6 +6,7 @@ export const CACHE_URLS = [
   "offline.html",
   "assets/styles.css",
   "assets/app.js",
+  "assets/features.js",
   "assets/search.js",
   "assets/presentation.js",
   "assets/formatters.js",
@@ -14,6 +15,7 @@ export const CACHE_URLS = [
   "assets/community.js",
   "assets/pwa-config.js",
   "data/lounges.json",
+  "data/meta.json",
   "data/localization/city-names-zh-tw.json",
   "manifest.webmanifest",
   "icons/icon-192.svg",

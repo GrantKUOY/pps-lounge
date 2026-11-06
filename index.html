@@ -16,7 +16,6 @@
   <header class="masthead">
     <a class="journal-wordmark" href="./">PPS Journal</a>
     <span class="edition">GLOBAL AIRPORT EDIT · 中文</span>
-    <button class="quiet-button" id="download-button" type="button" disabled>匯出 CSV</button>
   </header>
   <section class="pwa-status" aria-live="polite" aria-label="App 狀態">
     <div id="pwa-install" class="pwa-banner" hidden>
@@ -88,6 +87,10 @@
           aria-pressed="false">北美洲</button>
         <button class="region-shortcut" type="button" data-quick-region="south-america"
           aria-pressed="false">南美洲</button>
+        <button class="region-shortcut" type="button" data-quick-region="africa"
+          aria-pressed="false">非洲</button>
+        <button class="region-shortcut" type="button" data-quick-region="oceania"
+          aria-pressed="false">大洋洲</button>
       </div>
       <p id="result-summary" class="result-summary" aria-live="polite">正在載入正式資料…</p>
       <div id="loading-state" class="state-panel">正在載入機場據點資料…</div>
@@ -125,6 +128,8 @@
           <option value="europe">歐洲</option>
           <option value="north-america">北美洲</option>
           <option value="south-america">南美洲</option>
+          <option value="africa">非洲</option>
+          <option value="oceania">大洋洲</option>
         </select></label>
         <label>國家／地區<select id="country-filter"><option value="">全部國家／地區</option></select></label>
         <label>城市<select id="city-filter"><option value="">全部城市</option></select></label>
@@ -223,6 +228,7 @@
 
   <footer>
     <p>資料僅供行程規劃參考，實際權益、開放時間與入場條件請以 Priority Pass 官方頁面為準。</p>
+    <p id="data-updated"></p>
   </footer>
 
   <script type="module" src="assets/app.js"></script>

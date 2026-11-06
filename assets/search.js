@@ -14,7 +14,8 @@ const asiaCountries = new Set([
 const europeCountries = new Set([
   "Albania", "Austria", "Belgium", "Bosnia and Herzegovina", "Bulgaria",
   "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia", "Finland",
-  "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy",
+  "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland",
+  "Isle of Man", "Italy", "Jersey",
   "Latvia", "Lithuania", "Luxembourg", "Malta", "Montenegro",
   "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Serbia",
   "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland",
@@ -34,12 +35,27 @@ const southAmericaCountries = new Set([
   "Guyana", "Paraguay", "Peru", "Uruguay", "Venezuela",
 ]);
 
+const africaCountries = new Set([
+  "Benin", "Botswana", "Cameroon", "Democratic Republic of the Congo",
+  "Egypt", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Kenya",
+  "Madagascar", "Mali", "Mauritius", "Morocco", "Mozambique", "Namibia",
+  "Nigeria", "Republic of the Congo", "Rwanda", "Seychelles",
+  "South Africa", "Tanzania", "Tunisia", "Uganda", "Zambia", "Zimbabwe",
+]);
+
+const oceaniaCountries = new Set([
+  "Australia", "Fiji", "Guam", "New Zealand", "Northern Mariana Islands",
+  "Vanuatu",
+]);
+
 export function regionForRecord(row) {
   if (row.region) return row.region;
   if (row.isAsia === true || asiaCountries.has(row.country)) return "asia";
   if (row.isEurope === true || europeCountries.has(row.country)) return "europe";
   if (northAmericaCountries.has(row.country)) return "north-america";
   if (southAmericaCountries.has(row.country)) return "south-america";
+  if (africaCountries.has(row.country)) return "africa";
+  if (oceaniaCountries.has(row.country)) return "oceania";
   return "";
 }
 

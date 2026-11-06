@@ -1,4 +1,4 @@
-import { downloadCsv } from "./csv.js";
+import { FEATURES } from "./features.js";
 import {
   escapeHtml,
   formatFacility,
@@ -51,7 +51,7 @@ const el = Object.fromEntries(
     "prev-page", "next-page", "page-info", "open-filters", "filters",
     "close-filters", "filter-form", "region-filter", "country-filter", "city-filter", "type-filter",
     "facility-filter", "sort-filter", "page-size-filter", "clear-filters",
-    "empty-clear", "retry-button", "download-button", "detail", "detail-content",
+    "empty-clear", "retry-button", "detail", "detail-content", "data-updated",
     "close-detail", "close-detail-icon",
     "airport-overview", "overview-code", "overview-name", "overview-meta",
     "report-dialog", "report-form", "report-lounge", "report-status",
@@ -190,7 +190,6 @@ function render() {
   el["loading-state"].hidden = !state.loading;
   el["error-state"].hidden = !state.error;
   el.search.disabled = state.loading || Boolean(state.error);
-  el["download-button"].disabled = state.loading || Boolean(state.error);
   el["clear-search"].hidden = !state.query;
   if (state.loading || state.error) return;
 
@@ -274,7 +273,7 @@ function showDetail(index, trigger) {
   el["detail-content"].innerHTML = detailHtml(row);
   el.detail.showModal();
   el["close-detail"].focus();
-  renderCommunitySection(row);
+  if (FEATURES.community) renderCommunitySection(row);
 }
 
 function closeDetail() {
@@ -491,6 +490,19 @@ el["empty-clear"].addEventListener("click", () => {
   el.search.value = "";
   resetFilters();
 });
+async function loadMeta() {
+  try {
+    const response = await fetch("data/meta.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const meta = await response.json();
+    if (meta?.dataUpdatedAt) {
+      el["data-updated"].textContent = `資料最後整理：${meta.dataUpdatedAt}`;
+    }
+  } catch {
+    // 整理日期是信任標示；載入失敗時留空，不影響查詢主功能。
+  }
+}
+
 el["retry-button"].addEventListener("click", loadData);
 el["prev-page"].addEventListener("click", () => {
   state.page -= 1;
@@ -509,10 +521,6 @@ el.results.addEventListener("click", (event) => {
 el["close-detail"].addEventListener("click", closeDetail);
 el["close-detail-icon"].addEventListener("click", closeDetail);
 el.detail.addEventListener("close", () => detailTrigger?.focus());
-el["download-button"].addEventListener("click", () => {
-  if (!state.currentRows.length) return window.alert("目前沒有可匯出的資料。");
-  downloadCsv(state.currentRows);
-});
 document.querySelectorAll("[data-quick-type]").forEach((button) => {
   button.addEventListener("click", () => {
     state.filters.type = button.dataset.quickType;
@@ -607,7 +615,7 @@ el["detail-content"].addEventListener("click", (event) => {
     );
     return;
   }
-  if (event.target.closest("[data-open-report-form]")) openReportDialog();
+  if (FEATURES.community && event.target.closest("[data-open-report-form]")) openReportDialog();
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePhotoLightbox();
@@ -663,4 +671,5 @@ if ("serviceWorker" in navigator) {
 }
 
 wirePwaEnhancements();
+loadMeta();
 loadData();

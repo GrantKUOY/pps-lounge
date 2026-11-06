@@ -74,6 +74,7 @@ export function detailHtml(row) {
       <h2>${escapeHtml(row.airportCode)} · ${escapeHtml(row.name)}</h2>
       <p>${escapeHtml(row.airportName)} · ${escapeHtml(formatTerminal(row.terminal))}</p>
     </header>
+    <p class="data-note">非官方整理站，入場資格與營業狀態以 Priority Pass 官網及現場公告為準。</p>
     <dl class="detail-facts">
       <div class="detail-fact"><dt>位置</dt><dd>${escapeHtml(formatLocation(row.location))}</dd></div>
       <div class="detail-fact"><dt>營業時間</dt><dd>${escapeHtml(formatOpeningHours(row.openingHours))}</dd></div>
