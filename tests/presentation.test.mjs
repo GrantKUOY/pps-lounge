@@ -75,3 +75,23 @@ test("詳情採資料列並只輸出安全官方網址", () => {
   assert.doesNotMatch(untrusted, /official-link/);
   assert.match(untrusted, /目前沒有可用的官方詳情連結/);
 });
+
+test("非熱門據點詳情收斂 conditions 呈現並保留官網連結", () => {
+  for (const html of [detailHtml(row), detailHtml(row, new Date(), { hot: false })]) {
+    assert.doesNotMatch(html, /Maximum 3 hour stay/);
+    assert.doesNotMatch(html, /最長可停留 3 小時/);
+    assert.doesNotMatch(html, /<h3>Conditions<\/h3>/);
+    assert.match(html, /入場條件請查 Priority Pass 官網/);
+    assert.match(html, /開啟 Priority Pass 官方頁面/);
+    assert.match(html, /Zone D/);
+    assert.match(html, /05:00 - 23:00/);
+    assert.match(html, /淋浴間/);
+  }
+});
+
+test("熱門據點詳情維持 conditions 現行呈現", () => {
+  const html = detailHtml(row, new Date(), { hot: true });
+  assert.match(html, /最長可停留 3 小時/);
+  assert.match(html, /<h3>Conditions<\/h3><p>Maximum 3 hour stay<\/p>/);
+  assert.doesNotMatch(html, /入場條件請查 Priority Pass 官網/);
+});

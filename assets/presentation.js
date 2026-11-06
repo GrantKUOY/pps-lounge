@@ -57,7 +57,7 @@ export function resultRowHtml(row) {
   </article>`;
 }
 
-export function detailHtml(row, now = new Date()) {
+export function detailHtml(row, now = new Date(), { hot = false } = {}) {
   const safeUrl = safeExternalUrl(row.url);
   const officialUrl = safeUrl && [
     "www.prioritypass.com",
@@ -69,6 +69,14 @@ export function detailHtml(row, now = new Date()) {
   const officialLink = officialUrl
     ? `<a class="official-link" href="${escapeHtml(officialUrl)}" target="_blank" rel="noreferrer noopener">開啟 Priority Pass 官方頁面 ↗</a>`
     : '<p class="official-missing">目前沒有可用的官方詳情連結。</p>';
+  // 非熱門據點不渲染 conditions 全文（版權收斂）：改指向官網，並移除原始英文的 Conditions 區塊。
+  const conditionsFact = hot
+    ? `<div class="detail-fact"><dt>使用條件</dt><dd>${escapeHtml(formatConditions(row.conditions))}</dd></div>`
+    : `<div class="detail-fact"><dt>使用條件</dt><dd>入場條件請查 Priority Pass 官網</dd></div>`;
+  const rawConditions = hot
+    ? `
+      <div class="raw-section"><h3>Conditions</h3><p>${escapeHtml(row.conditions || "Not provided")}</p></div>`
+    : "";
 
   return `<header class="detail-heading">
       <span class="detail-code">${escapeHtml(row.airportCode)}</span>
@@ -81,11 +89,10 @@ export function detailHtml(row, now = new Date()) {
       <div class="detail-fact"><dt>位置</dt><dd>${escapeHtml(formatLocation(row.location))}</dd></div>
       <div class="detail-fact"><dt>營業時間</dt><dd>${escapeHtml(formatOpeningHours(row.openingHours))}</dd></div>
       <div class="detail-fact"><dt>設施</dt><dd>${escapeHtml(facilities)}</dd></div>
-      <div class="detail-fact"><dt>使用條件</dt><dd>${escapeHtml(formatConditions(row.conditions))}</dd></div>
+      ${conditionsFact}
     </dl>
     <details class="raw-copy"><summary>查看原始英文</summary>
-      <div class="raw-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></div>
-      <div class="raw-section"><h3>Conditions</h3><p>${escapeHtml(row.conditions || "Not provided")}</p></div>
+      <div class="raw-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></div>${rawConditions}
     </details>
     ${officialLink}
     <div data-community-mount></div>

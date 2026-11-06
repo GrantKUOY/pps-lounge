@@ -38,6 +38,7 @@ const state = {
   page: 1,
   pageSize: 24,
   selected: null,
+  hotAirports: new Set(),
   loading: true,
   error: null,
   currentRows: [],
@@ -270,7 +271,9 @@ function showDetail(index, trigger) {
   detailTrigger = trigger;
   el.detail.setAttribute("aria-label", `${row.name} 詳情`);
   el["close-detail"].textContent = `← 返回 ${row.airportCode} 的搜尋結果`;
-  el["detail-content"].innerHTML = detailHtml(row, new Date());
+  el["detail-content"].innerHTML = detailHtml(row, new Date(), {
+    hot: state.hotAirports.has(String(row.airportCode).toUpperCase()),
+  });
   el.detail.showModal();
   el["close-detail"].focus();
   if (FEATURES.community) renderCommunitySection(row);
@@ -490,6 +493,23 @@ el["empty-clear"].addEventListener("click", () => {
   el.search.value = "";
   resetFilters();
 });
+async function loadPageScope() {
+  try {
+    const response = await fetch("data/page-scope.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const scope = await response.json();
+    if (Array.isArray(scope?.airports)) {
+      state.hotAirports = new Set(
+        scope.airports
+          .map((code) => String(code).trim().toUpperCase())
+          .filter(Boolean),
+      );
+    }
+  } catch {
+    // 熱門名單載入失敗時，詳情一律走 conditions 收斂呈現（版權安全預設），不影響查詢主功能。
+  }
+}
+
 async function loadMeta() {
   try {
     const response = await fetch("data/meta.json", { cache: "no-cache" });
@@ -672,4 +692,5 @@ if ("serviceWorker" in navigator) {
 
 wirePwaEnhancements();
 loadMeta();
+loadPageScope();
 loadData();
