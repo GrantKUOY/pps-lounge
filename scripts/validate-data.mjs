@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 const rows = JSON.parse(await readFile("data/lounges.json", "utf8"));
+const plans = JSON.parse(await readFile("data/plans.json", "utf8"));
 const errors = [];
 
 if (rows.length !== 1754) {
@@ -90,6 +91,78 @@ for (const [index, row] of rows.entries()) {
   }
 }
 
+// 計畫主表守門（wave2-5a）：每計畫必填欄位齊全、每條差異附官方來源
+// （https 原文短引），aspect/display 必須在列舉值內，避免主表悄悄掉欄
+// 或混入無出處的規則敘述。
+const PLAN_ASPECTS = ["dining", "guests", "enrollment", "exclusions"];
+const PLAN_DISPLAYS = ["detail", "detail_dining", "page"];
+const isHttpsUrl = (value) => {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+const isDateString = (value) =>
+  typeof value === "string" &&
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime()) &&
+  new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+
+if (!Array.isArray(plans) || plans.length === 0) {
+  errors.push("plans: data/plans.json must be a non-empty array");
+}
+const seenPlanIds = new Set();
+for (const [index, plan] of (Array.isArray(plans) ? plans : []).entries()) {
+  for (const key of ["id", "name", "issuer"]) {
+    if (typeof plan[key] !== "string" || !plan[key].trim()) {
+      errors.push(`plan ${index}: ${key} must be a non-empty string`);
+    }
+  }
+  if (typeof plan.id === "string") {
+    if (seenPlanIds.has(plan.id)) {
+      errors.push(`plan ${index}: duplicate id ${plan.id}`);
+    }
+    seenPlanIds.add(plan.id);
+  }
+  if (!isHttpsUrl(plan.official_url)) {
+    errors.push(`plan ${index}: official_url must be an https URL`);
+  }
+  if (!isDateString(plan.verified_at)) {
+    errors.push(`plan ${index}: verified_at must be a valid YYYY-MM-DD date`);
+  }
+  if (typeof plan.participates_in_hints !== "boolean") {
+    errors.push(`plan ${index}: participates_in_hints must be a boolean`);
+  }
+  if (
+    "nature_note" in plan &&
+    (typeof plan.nature_note !== "string" || !plan.nature_note.trim())
+  ) {
+    errors.push(`plan ${index}: nature_note must be a non-empty string when present`);
+  }
+  if (!Array.isArray(plan.differences) || plan.differences.length === 0) {
+    errors.push(`plan ${index}: differences must be a non-empty array`);
+    continue;
+  }
+  for (const [diffIndex, diff] of plan.differences.entries()) {
+    if (!PLAN_ASPECTS.includes(diff.aspect)) {
+      errors.push(`plan ${index} diff ${diffIndex}: invalid aspect`);
+    }
+    if (!PLAN_DISPLAYS.includes(diff.display)) {
+      errors.push(`plan ${index} diff ${diffIndex}: invalid display`);
+    }
+    if (typeof diff.summary_zh !== "string" || !diff.summary_zh.trim()) {
+      errors.push(`plan ${index} diff ${diffIndex}: summary_zh must be non-empty`);
+    }
+    if (!isHttpsUrl(diff.source_url)) {
+      errors.push(`plan ${index} diff ${diffIndex}: source_url must be an https URL`);
+    }
+    if (typeof diff.quote !== "string" || !diff.quote.trim()) {
+      errors.push(`plan ${index} diff ${diffIndex}: quote must be non-empty`);
+    }
+  }
+}
+
 if (errors.length) {
   console.error(errors.slice(0, 20).join("\n"));
   console.error(`validation failed with ${errors.length} errors`);
@@ -97,4 +170,6 @@ if (errors.length) {
 } else {
   const airports = new Set(rows.map((row) => row.airportCode)).size;
   console.log(`validated ${rows.length} rows across ${airports} airports`);
+  const diffCount = plans.reduce((sum, plan) => sum + plan.differences.length, 0);
+  console.log(`validated ${plans.length} plans with ${diffCount} differences`);
 }

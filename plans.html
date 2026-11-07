@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PP 計畫比較｜各發卡行 Priority Pass 規則對照 — PPS Lounge</title>
+  <meta name="description" content="Amex Platinum、HSBC US Elite、Venture X、Chase Sapphire Reserve、玉山世界卡與 HSBC 台灣旅人卡附帶的機場貴賓室計畫規則對照：賓客、餐飲、使用方式與注意事項。">
+  <meta property="og:title" content="PP 計畫比較｜各發卡行 Priority Pass 規則對照 — PPS Lounge">
+  <meta property="og:description" content="六個貴賓室計畫的規則差異對照，逐條附發卡行官方來源與核對日期。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pps-lounge.vercel.app/plans.html">
+  <meta property="og:image" content="https://pps-lounge.vercel.app/icons/og-1200x630.png">
+  <meta name="theme-color" content="#5a1f2b">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%231d1d1f%22/><text x=%2232%22 y=%2243%22 text-anchor=%22middle%22 font-size=%2236%22 font-family=%22Arial%22 font-weight=%22700%22 fill=%22white%22>P</text></svg>">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="journal-wordmark" href="./">PPS Journal</a>
+    <span class="edition">GLOBAL AIRPORT EDIT · 中文</span>
+  </header>
+
+  <main>
+    <p class="kicker">Plan comparison</p>
+    <div class="detail-heading">
+      <h2>PP 計畫比較</h2>
+      <p>各發卡行附帶的機場貴賓室計畫規則對照</p>
+    </div>
+    <p class="data-note">本頁為計畫規則對照，實際入場以各據點與發卡行最新規定為準。</p>
+    <p class="data-note">每條規則均整理自發卡行官方頁面，並標示核對日期；出發前建議再點開官方來源確認。</p>
+    <div id="plans-list">
+      <p class="data-note">正在載入計畫資料…</p>
+    </div>
+    <p><a class="text-action" href="./">回主站搜尋據點 →</a></p>
+  </main>
+
+  <footer>
+    <p>資料僅供行程規劃參考，實際權益、開放時間與入場條件請以 Priority Pass 官方頁面為準。</p>
+    <p><a href="plans.html">PP 計畫比較</a></p>
+  </footer>
+
+  <script type="module">
+    import { escapeHtml, safeExternalUrl } from "./assets/formatters.js";
+    import { ASPECT_LABELS, loadPlans } from "./assets/plans.js";
+
+    const target = document.getElementById("plans-list");
+
+    function planSection(plan) {
+      const nature = plan.nature_note
+        ? `<p class="plan-nature">${escapeHtml(plan.nature_note)}</p>`
+        : "";
+      const items = (plan.differences ?? [])
+        .map((diff) => {
+          const source = safeExternalUrl(diff.source_url);
+          const sourceLink = source
+            ? ` <a href="${escapeHtml(source)}" target="_blank" rel="noreferrer noopener">官方來源 ↗</a>`
+            : "";
+          return `<li><strong>${escapeHtml(ASPECT_LABELS[diff.aspect] ?? "計畫規則")}</strong>：${escapeHtml(diff.summary_zh)}${sourceLink}</li>`;
+        })
+        .join("");
+      const official = safeExternalUrl(plan.official_url);
+      const officialLink = official
+        ? `<p><a class="official-link" href="${escapeHtml(official)}" target="_blank" rel="noreferrer noopener">發卡行官方權益頁 ↗</a></p>`
+        : "";
+      return `<section class="plan-section">
+        <h3>${escapeHtml(plan.name)}</h3>
+        <p class="data-note">${escapeHtml(plan.issuer)}・計畫規則核對日：${escapeHtml(plan.verified_at ?? "")}</p>
+        ${nature}
+        <ul class="plan-diff-list">${items}</ul>
+        ${officialLink}
+      </section>`;
+    }
+
+    loadPlans("data/plans.json").then((plans) => {
+      if (!plans.length) {
+        target.innerHTML = '<p class="data-note">計畫資料載入失敗，請稍後再試。</p>';
+        return;
+      }
+      target.innerHTML = plans.map(planSection).join("");
+    });
+  </script>
+</body>
+</html>

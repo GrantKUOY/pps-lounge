@@ -17,6 +17,12 @@ import {
 } from "./presentation.js";
 import { matchFirstParty } from "./first-party.js";
 import {
+  loadPlans,
+  readSelectedPlanId,
+  renderPlanBand,
+  writeSelectedPlanId,
+} from "./plans.js";
+import {
   communityReportsHtml,
   loungeKeyForRow,
 } from "./community.js";
@@ -40,6 +46,8 @@ const state = {
   pageSize: 24,
   selected: null,
   hotAirports: new Set(),
+  plans: [],
+  planId: "",
   firstParty: [],
   loading: true,
   error: null,
@@ -51,7 +59,7 @@ const el = Object.fromEntries(
     "search", "clear-search", "suggestions", "recent-wrap", "recent-searches",
     "results-title", "result-summary", "loading-state", "error-state",
     "empty-state", "results",
-    "prev-page", "next-page", "page-info", "open-filters", "filters",
+    "prev-page", "next-page", "page-info", "open-filters", "filters", "plan-select",
     "close-filters", "filter-form", "region-filter", "country-filter", "city-filter", "type-filter",
     "facility-filter", "sort-filter", "page-size-filter", "clear-filters",
     "empty-clear", "retry-button", "detail", "detail-content", "data-updated",
@@ -284,7 +292,49 @@ function showDetail(index, trigger) {
   });
   el.detail.showModal();
   el["close-detail"].focus();
+  injectPlanBand(row);
   if (FEATURES.community) renderCommunitySection(row);
+}
+
+// 計畫差異提示帶：依使用者選定的計畫，在詳情免責行之後插入規則提示。
+// 只陳述計畫規則，不影響詳情其他內容；未選計畫或無命中條目時不插入。
+async function injectPlanBand(row) {
+  if (!state.planId || !row) return;
+  if (!state.plans.length) await loadPlansData();
+  if (state.selected !== row) return;
+  el["detail-content"].querySelector(".plan-band")?.remove();
+  const plan = state.plans.find((item) => item.id === state.planId);
+  const band = plan ? renderPlanBand(plan, row.type) : null;
+  if (!band) return;
+  const anchor = el["detail-content"].querySelector(".data-note");
+  if (anchor) anchor.insertAdjacentHTML("afterend", band);
+  else el["detail-content"].insertAdjacentHTML("afterbegin", band);
+}
+
+function populatePlanSelect() {
+  const select = el["plan-select"];
+  if (!select) return;
+  select.innerHTML = [
+    `<option value="">未選擇</option>`,
+    ...state.plans.map((plan) => {
+      const suffix = plan.id === "esun-world-ufirst" ? "（U.First 對照）" : "";
+      return `<option value="${escapeHtml(plan.id)}">${escapeHtml(plan.name)}${suffix}</option>`;
+    }),
+  ].join("");
+  if (state.plans.some((plan) => plan.id === state.planId)) {
+    select.value = state.planId;
+  } else {
+    select.value = "";
+  }
+}
+
+async function loadPlansData() {
+  state.planId = readSelectedPlanId();
+  const plans = await loadPlans("data/plans.json");
+  if (Array.isArray(plans) && plans.length) {
+    state.plans = plans;
+  }
+  populatePlanSelect();
 }
 
 function closeDetail() {
@@ -545,6 +595,11 @@ async function loadMeta() {
   }
 }
 
+el["plan-select"]?.addEventListener("change", (event) => {
+  state.planId = event.target.value;
+  writeSelectedPlanId(state.planId);
+  if (state.selected && el.detail.open) injectPlanBand(state.selected);
+});
 el["retry-button"].addEventListener("click", loadData);
 el["prev-page"].addEventListener("click", () => {
   state.page -= 1;
@@ -715,5 +770,6 @@ if ("serviceWorker" in navigator) {
 wirePwaEnhancements();
 loadMeta();
 loadPageScope();
+loadPlansData();
 loadFirstParty();
 loadData();

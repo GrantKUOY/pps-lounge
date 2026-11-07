@@ -206,7 +206,7 @@ function loungePage(row, slug) {
   return `${pageHead({ title, description, canonical })}
 <body>
 ${masthead}
-  <main>
+  <main data-lounge-type="${escapeHtml(row.type)}">
     <p><a class="text-action" href="../../airport/${codeLower}/">← 回 ${escapeHtml(row.airportName)} 全部據點</a></p>
     <header class="detail-heading">
       <span class="detail-code">${escapeHtml(code)}</span>
@@ -226,6 +226,26 @@ ${masthead}
     <p><a class="text-action" href="../../airport/${codeLower}/">回 ${escapeHtml(code)} 機場頁 →</a>　<a class="text-action" href="../../">回主站搜尋</a></p>
     <p class="data-note">資料可能變動；出發前請以 Priority Pass 官方頁面及現場公告為準。</p>
   </main>
+  <script type="module">
+    // 計畫差異提示（增強功能）：讀取主站存下的計畫選擇，把提示帶插入
+    // 詳情容器的免責行之後；無選擇、無命中或容器不存在時安靜略過。
+    try {
+      const planId = localStorage.getItem("pps-plan");
+      if (planId) {
+        const { loadPlans, renderPlanBand } = await import("../../assets/plans.js");
+        const plans = await loadPlans("../../data/plans.json");
+        const plan = plans.find((item) => item.id === planId);
+        const container = document.querySelector("main");
+        const anchor = container?.querySelector(".data-note");
+        const band = plan && container
+          ? renderPlanBand(plan, container.dataset.loungeType, { plansUrl: "../../plans.html" })
+          : null;
+        if (band && anchor) anchor.insertAdjacentHTML("afterend", band);
+      }
+    } catch {
+      // localStorage 或資料載入不可用時不顯示提示帶，不影響頁面內容。
+    }
+  </script>
 </body>
 </html>
 `;

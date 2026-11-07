@@ -1,0 +1,232 @@
+[
+  {
+    "id": "amex-platinum",
+    "name": "Priority Pass Select（Amex Platinum 附帶）",
+    "issuer": "American Express",
+    "official_url": "https://www.americanexpress.com/en-us/travel/get-inspired/maximizing-amex-travel-benefits/",
+    "verified_at": "2026-11-07",
+    "participates_in_hints": true,
+    "differences": [
+      {
+        "aspect": "guests",
+        "summary_zh": "每場次前 2 位賓客免費；第 3 位起按 Priority Pass Standard 方案賓客費自動扣款（PP 官網現行標價每位 US$35）。",
+        "source_url": "https://www.americanexpress.com/en-us/travel/get-inspired/maximizing-amex-travel-benefits/",
+        "quote": "When visiting a Priority Pass Select lounge that admits guests, Platinum Card Members receive complimentary access for up to two accompanying guests. After two guests, the Card Account on file with Priority Pass Select will be automatically charged the guest visit fee of the Priority Pass Standard program for each additional guest",
+        "display": "detail"
+      },
+      {
+        "aspect": "enrollment",
+        "summary_zh": "必須先註冊才能用：正卡與附屬 Platinum 卡持卡人各自經 americanexpress.com 帳戶 benefits 區或卡背電話辦理註冊，未註冊無法使用。",
+        "source_url": "https://www.americanexpress.com/en-us/travel/get-inspired/maximizing-amex-travel-benefits/",
+        "quote": "must enroll in the Priority Pass™ Select program through the benefits section of their americanexpress.com account or by calling the number on the back of their Card to receive the benefit",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "特定附屬卡別不具資格：個人 Platinum 的 Companion Platinum 附卡、商業 Platinum 的 Additional Gold 與 Additional Business Expense 附卡不得享有此權益。",
+        "source_url": "https://www.americanexpress.com/en-us/travel/get-inspired/maximizing-amex-travel-benefits/",
+        "quote": "Companion Platinum Cards on Consumer Platinum Accounts and Additional Gold and Additional Business Expense Cards on Business Platinum Accounts are not eligible for the Priority Pass Select benefit.",
+        "display": "page"
+      }
+    ]
+  },
+  {
+    "id": "hsbc-us-elite",
+    "name": "Priority Pass（HSBC US Elite World Elite Mastercard 附帶）",
+    "issuer": "HSBC Bank USA",
+    "official_url": "https://www.us.hsbc.com/configuration/modals/loungekey/",
+    "verified_at": "2026-11-07",
+    "participates_in_hints": true,
+    "differences": [
+      {
+        "aspect": "dining",
+        "summary_zh": "會籍明載包含貴賓室以外的 Priority Pass 體驗據點（含機場餐廳類據點）。",
+        "source_url": "https://www.us.hsbc.com/content/dam/hsbc/us/docs/pdf/credit-cards-pdfs/elite-mc-rewards-and-benefits-guide.pdf",
+        "quote": "Membership to 1700+ Priority Pass lounges and experiences",
+        "display": "detail_dining"
+      },
+      {
+        "aspect": "guests",
+        "summary_zh": "每次可攜 2 位賓客免費（單次含持卡人共 3 人），本人使用次數不限；第 3 位起每位每次 US$35。",
+        "source_url": "https://www.us.hsbc.com/content/dam/hsbc/us/docs/pdf/credit-cards-pdfs/elite-mc-rewards-and-benefits-guide.pdf",
+        "quote": "Eligible cardholders (Primary or their Authorized User(s)) and up to 2 guests (up to 3 persons total per airport visit) will have lounge membership with unlimited lounge visits, per account, per year. Additional guest visits are only $35 per visit, per person paid for by the cardholder.",
+        "display": "detail"
+      },
+      {
+        "aspect": "enrollment",
+        "summary_zh": "出示實體卡即可入場（會籍註冊由發卡行完成）；數位會員卡需自行至 prioritypass.com/HSBCElite 啟用帳戶。",
+        "source_url": "https://www.prioritypass.com/HSBCElite",
+        "quote": "Once you activate your account, you and up to 2 guests will have access to more than 1,900+ participating airport lounges worldwide.",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "數位會員卡註冊以每個 HSBC 帳號限一位持卡人為限，同帳號的其他持卡人無法註冊數位會員卡。",
+        "source_url": "https://www.us.hsbc.com/configuration/modals/loungekey/",
+        "quote": "Please note that only one cardholder per HSBC account number can register.",
+        "display": "page"
+      }
+    ]
+  },
+  {
+    "id": "venture-x",
+    "name": "Priority Pass（Capital One Venture X 附帶）",
+    "issuer": "Capital One",
+    "official_url": "https://www.capitalone.com/credit-cards/disclosures/airport-lounge-terms/",
+    "verified_at": "2026-11-07",
+    "participates_in_hints": true,
+    "differences": [
+      {
+        "aspect": "guests",
+        "summary_zh": "Priority Pass 據點無免費賓客名額，賓客一律每位每次 US$35（同系列的 Venture X Business 則有 2 位免費，勿混淆）。",
+        "source_url": "https://www.capitalone.com/credit-cards/disclosures/airport-lounge-terms/",
+        "quote": "Primary cardholders and additional cardholders who've paid the $125 annual lounge access fee can purchase passes for guests to participating Priority Pass lounges at a rate of $35 per visit per guest.",
+        "display": "detail"
+      },
+      {
+        "aspect": "enrollment",
+        "summary_zh": "必須先註冊 Priority Pass 才能使用，且註冊需具備 Capital One 線上帳戶存取權。",
+        "source_url": "https://www.capitalone.com/credit-cards/disclosures/airport-lounge-terms/",
+        "quote": "Priority Pass lounge access is subject to cardholder enrollment in Priority Pass and the Priority Pass Conditions of Use. Capital One online access is required to enroll in Priority Pass.",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "附卡／授權使用者預設無貴賓室權益，須由正卡人另付每人每年 US$125 的 Lounge Access Fee 才取得（含 Priority Pass）。",
+        "source_url": "https://www.capitalone.com/credit-cards/disclosures/airport-lounge-terms/",
+        "quote": "Additional cardholders, including account managers and authorized users, do not have complimentary lounge access. Primary cardholders and account managers can purchase airport lounge access for additional cardholders for an annual lounge access fee of $125 per additional cardholder.",
+        "display": "page"
+      }
+    ]
+  },
+  {
+    "id": "chase-sapphire-reserve",
+    "name": "Priority Pass Select（Chase Sapphire Reserve 附帶）",
+    "issuer": "Chase",
+    "official_url": "https://creditcards.chase.com/a1/SapphireReserve/acqemail/2025Q4",
+    "verified_at": "2026-11-07",
+    "participates_in_hints": true,
+    "differences": [
+      {
+        "aspect": "dining",
+        "summary_zh": "官方條款明載會籍包含機場貴賓室及 select airport experiences（非貴賓室體驗據點）。",
+        "source_url": "https://creditcards.chase.com/a1/SapphireReserve/acqemail/2025Q4",
+        "quote": "Priority Pass Select membership includes access to airport lounges and select airport experiences participating in the Priority Pass Select network.",
+        "display": "detail_dining"
+      },
+      {
+        "aspect": "guests",
+        "summary_zh": "正卡與授權使用者每人每次可攜 2 位賓客免費；第 3 位起每位每次 US$27（低於多數計畫的 US$35）。",
+        "source_url": "https://creditcards.chase.com/a1/SapphireReserve/acqemail/2025Q4",
+        "quote": "granted complimentary access to the Priority Pass lounges and are allowed a maximum of two accompanying guests each. For any additional guests, your card will be charged $27 per guest, per visit.",
+        "display": "detail"
+      },
+      {
+        "aspect": "enrollment",
+        "summary_zh": "會籍自動啟用：正卡與授權使用者無需另外註冊或啟用手續（與 Amex、Capital One 形成對比）。",
+        "source_url": "https://creditcards.chase.com/a1/SapphireReserve/acqemail/2025Q4",
+        "quote": "Primary cardmembers and any authorized users will have their Priority Pass Select membership automatically activated.",
+        "display": "page"
+      }
+    ]
+  },
+  {
+    "id": "esun-world-ufirst",
+    "name": "玉山世界卡（U.First 全球貴賓室權益，台灣代表）",
+    "issuer": "玉山銀行 E.Sun Bank",
+    "official_url": "https://www.esunbank.com/zh-tw/personal/credit-card/benefit/vip-room",
+    "verified_at": "2026-11-07",
+    "participates_in_hints": false,
+    "nature_note": "U.First 為肯驛國際營運的全球貴賓室／餐廳網絡，並非 Priority Pass 會籍，據點覆蓋與 PP 不完全相同；本列僅供台灣本地銀行次數／門檻制作對照。",
+    "differences": [
+      {
+        "aspect": "dining",
+        "summary_zh": "機場餐廳包含在權益內（U.First 指定套餐），但與貴賓室共用免費次數：每用 1 客套餐扣抵 1 次，且同日同人僅 1 次免費。",
+        "source_url": "https://www.esunbank.com/zh-tw/personal/credit-card/benefit/vip-room",
+        "quote": "每次出國可免費使用機場貴賓室 / 餐廳2次。",
+        "display": "page"
+      },
+      {
+        "aspect": "guests",
+        "summary_zh": "無免費攜伴名額：同行賓客不論大人或孩童，每位每次收攜伴費 NT$900（或玉山 e point 800 點折抵），由持卡人帳單列收。",
+        "source_url": "https://www.esunbank.com/zh-tw/personal/credit-card/benefit/vip-room",
+        "quote": "與您同行的賓客不論是孩童或大人，每位每次酌收攜伴費新臺幣900元或以玉山e point 800點折抵該費用",
+        "display": "page"
+      },
+      {
+        "aspect": "enrollment",
+        "summary_zh": "須事先線上申請 U.First 機場貴賓卡才能使用（最遲使用前一個工作天；玉山世界卡貴賓卡效期 3 年），並非持信用卡即可直接入場。",
+        "source_url": "https://www.esunbank.com/zh-tw/personal/credit-card/benefit/vip-room",
+        "quote": "請於使用機場貴賓室/餐廳前一個工作天申請U.First 全球貴賓室機場貴賓卡。",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "免費次數有上限：每次出國最多 2 次、全年上限 8 次（私銀／極致理財會員 10 次）、每日免費以 1 次為限；超次數或未達資格每人每次收 NT$900。",
+        "source_url": "https://www.esunbank.com/zh-tw/personal/credit-card/benefit/vip-room",
+        "quote": "每次出國可免費使用機場貴賓室 / 餐廳2次。全年度免費使用上限8次。",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "免費使用須先達消費門檻：使用前 60 天內同卡新增消費含國際機票或國外團費達 NT$30,000，或 180 天內新增消費達 NT$200,000（私銀／極致會員僅需最近一期帳單 1 筆一般消費）；正、附卡門檻分開計算。",
+        "source_url": "https://www.esunbank.com/zh-tw/personal/credit-card/benefit/vip-room",
+        "quote": "使用機場貴賓室/餐廳優惠服務往前追溯60天，以同卡號優惠卡別新增消費(含一般消費及特約商店分期付款消費全額)，需包含國際機票或旅行社國外團費，總計共達3萬元(含)以上",
+        "display": "page"
+      }
+    ]
+  },
+  {
+    "id": "hsbc-tw-traveler",
+    "name": "HSBC 台灣卓越理財（Premier）× Priority Pass（旅人卡）",
+    "issuer": "HSBC Taiwan 滙豐（台灣）商業銀行",
+    "official_url": "https://www.hsbc.com.tw/zh-tw/premier/",
+    "verified_at": "2026-11-07",
+    "participates_in_hints": true,
+    "nature_note": "Premier 為理財資格背景；本列 PP 權益實際由滙豐旅人卡發放（次數制、事先預約制）。",
+    "differences": [
+      {
+        "aspect": "exclusions",
+        "summary_zh": "Premier 資格門檻：帳戶每月最低平均餘額須達等值 NT$300 萬元，未達者按月收取 NT$1,000 帳戶管理費（配偶及 28 歲以下子女經申請連結可同享資格、不受餘額限制）。",
+        "source_url": "https://www.hsbc.com.tw/zh-tw/premier/",
+        "quote": "滙豐卓越理財客戶之帳戶每月最低平均餘額需達等值新臺幣300 萬元（含）以上。若帳戶持有人未達上述每月最低平均餘額者，本行將收取每月帳戶管理費新臺幣1,000元或等值外幣。",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "Priority Pass 貴賓室權益實際透過滙豐旅人卡發放（Premier 資格本身不直接發 PP 會籍）：旅人無限卡每年免費 8 次、旅人御璽卡 2 次、輕旅卡無。",
+        "source_url": "https://www.hsbc.com.tw/content/dam/hsbc/tw/docs/credit-cards/travellers-visa-credit-card/three-product-comparison.pdf",
+        "quote": "旅人無限卡提供每年8 次免費機場貴賓室；旅人御璽卡提供每年2 次免費機場貴賓室",
+        "display": "page"
+      },
+      {
+        "aspect": "exclusions",
+        "summary_zh": "免費使用附刷卡門檻：須以旅人無限卡或御璽卡刷卡支付國際線機票全額或國外團費 80% 以上，且限正卡持卡人。",
+        "source_url": "https://www.hsbc.com.tw/zh-tw/credit-cards/benefits/lounge-services/",
+        "quote": "本優惠服務僅限滙豐銀行旅人無限卡及旅人御璽卡正卡持卡人適用，並須以旅人無限卡或御璽卡刷卡支付80% 以上國外團費或國際線機票全額，方可使用本優惠。",
+        "display": "detail"
+      },
+      {
+        "aspect": "dining",
+        "summary_zh": "免費貴賓室服務官方明載涵蓋全球 1,000+ 間貴賓室及餐廳據點（與貴賓室共用免費次數）。",
+        "source_url": "https://www.hsbc.com.tw/en-tw/credit-cards/benefits/",
+        "quote": "HSBC Traveller's Infinite Credit Card and HSBC TravelOne Signature Credit Card offer free VIP lounge services from 1000+ lounges and restaurants worldwide",
+        "display": "detail_dining"
+      },
+      {
+        "aspect": "guests",
+        "summary_zh": "無免費賓客：權益限正卡持卡人本人使用，非持卡人（隨行賓客）須另行自費預約，賓客費金額官網未明示。",
+        "source_url": "https://www.hsbc.com.tw/zh-tw/credit-cards/benefits/lounge-services/",
+        "quote": "本優惠服務限正卡持卡人本人使用，非持卡人如需預約，請至aeroride 台灣快綫官網自費預約。",
+        "display": "detail"
+      },
+      {
+        "aspect": "enrollment",
+        "summary_zh": "採事先預約制而非 PP 官網註冊啟用：須於使用日 5 個工作天前（連續假期 7 個工作天前）完成預約取得憑證；prioritypass.com 查無台灣滙豐專屬啟用頁。",
+        "source_url": "https://www.hsbc.com.tw/zh-tw/credit-cards/benefits/lounge-services/",
+        "quote": "欲使用本服務，應於預訂服務提供日五個工作天前（不含使用當日，如遇農曆春節期間或連續假期須於七個工作天前預約）事先完成預約",
+        "display": "detail"
+      }
+    ]
+  }
+]

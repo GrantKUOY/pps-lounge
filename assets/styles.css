@@ -486,6 +486,24 @@ dialog::backdrop { background: rgba(32, 37, 34, .42); }
   padding-top: 10px;
 }
 .official-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 18px; border-bottom: 1px solid var(--ink); color: var(--ink); text-decoration: none; font-weight: 750; }
+/* 計畫選擇列（首頁搜尋區下方）：只影響詳情的計畫規則提示，不影響搜尋與列表。 */
+.plan-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.plan-picker label { font-size: 13px; font-weight: 750; }
+.plan-picker select { min-width: 0; max-width: 100%; padding: 0 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper-raised); color: var(--ink); }
+.plan-picker .text-action { min-height: 44px; display: inline-flex; align-items: center; }
+.plan-picker-note { margin: 6px 0 0; color: var(--ink-muted); font-size: 12px; line-height: 1.6; }
+/* 計畫差異提示帶：琥珀系提醒色（非品牌互動色 oxblood，避免誤認為操作或錯誤）。 */
+.plan-band { margin: 16px 0; padding: 14px 16px; border: 1px solid #D9B45B; border-left: 5px solid #B97F16; background: #F8ECD0; color: var(--ink); }
+.plan-band-title { margin: 0 0 8px; font-weight: 800; font-size: 14px; }
+.plan-band-list { margin: 0; padding-left: 20px; line-height: 1.65; }
+.plan-band-note { margin: 10px 0 0; color: var(--ink-muted); font-size: 12px; line-height: 1.6; }
+.plan-band-note a { color: var(--ink); font-weight: 750; }
+/* 計畫比較頁（plans.html） */
+.plan-section { padding: 20px 0 6px; border-top: 1px solid var(--rule); }
+.plan-section h3 { margin: 0 0 6px; font-size: 20px; }
+.plan-nature { margin: 10px 0; padding: 10px 12px; border-left: 4px solid #B97F16; background: #F8ECD0; line-height: 1.65; }
+.plan-diff-list { margin: 8px 0; padding-left: 20px; line-height: 1.7; }
+.plan-diff-list a { color: var(--ink); }
 .official-missing { color: var(--ink-muted); }
 .back-button { padding: 0; border: 0; background: transparent; color: var(--oxblood); font-weight: 750; }
 .sheet-actions { display: flex; gap: 12px; }
