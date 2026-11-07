@@ -6,3 +6,6 @@ node_modules
 playwright-report/
 test-results/
 .superpowers/
+
+# 母本 CSV（含 conditions 全文）只存 vault，不進公開 repo
+PPS_LOUNGE.csv
