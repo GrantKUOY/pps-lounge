@@ -34,7 +34,7 @@ const SITE_ORIGIN = "https://pps-lounge.vercel.app";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DISCLAIMER =
   "非官方整理站，入場資格與營業狀態以 Priority Pass 官網及現場公告為準。";
-const OG_IMAGE = `${SITE_ORIGIN}/icons/icon-512.svg`;
+const OG_IMAGE = `${SITE_ORIGIN}/icons/og-1200x630.png`;
 
 const readJson = (relative) =>
   JSON.parse(readFileSync(path.join(ROOT, relative), "utf8"));
