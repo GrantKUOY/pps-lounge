@@ -139,6 +139,46 @@ test("人工下架規則可稽核、slug 唯一且精確對應來源資料", asy
   }
 });
 
+test("pps-records.js 資料面收斂（wave2 追加包）：全筆無 conditions 全文、excerpt ≤200 且正規化冪等", async () => {
+  const sourceText = await readFile(
+    new URL("../pps-records.js", import.meta.url),
+    "utf8",
+  );
+  const sourceMatch = sourceText.match(
+    /^window\.PPS_RECORDS = (\[[\s\S]*?\]);\s*window\.PPS_RECORDS_META/,
+  );
+  assert.ok(sourceMatch, "原始 PPS_RECORDS 資料應可解析");
+  const sourceRows = JSON.parse(sourceMatch[1]);
+
+  assert.equal(sourceRows.length, 1754);
+  for (const row of sourceRows) {
+    assert.ok(
+      !("conditions" in row),
+      `${row.airportCode} ${row.name} 不得帶 conditions 全文`,
+    );
+    assert.ok(
+      "conditions_excerpt" in row,
+      `${row.airportCode} ${row.name} 缺 conditions_excerpt 欄位`,
+    );
+    assert.ok(
+      row.conditions_excerpt === null ||
+        (typeof row.conditions_excerpt === "string" &&
+          row.conditions_excerpt.length <= 200),
+      `${row.airportCode} ${row.name} 的 conditions_excerpt 必須 ≤200 字元或 null`,
+    );
+    // 管線 identity key 對 supplemental 列直接採 conditions_excerpt 值，
+    // 此值必須是 conditionsExcerpt 的不動點（正規化後）：無分隔符長文
+    // 硬截斷至 200 字元時尾隨空白會被函式 trim，故以 trimEnd 後比對。
+    if (row.conditions_excerpt !== null) {
+      assert.equal(
+        conditionsExcerpt(row.conditions_excerpt),
+        row.conditions_excerpt.trimEnd(),
+        `${row.airportCode} ${row.name} 的 conditions_excerpt 必須為 conditionsExcerpt 不動點（正規化後）`,
+      );
+    }
+  }
+});
+
 test("冰島 KEF 餐飲據點包含 Jomfruin 與 Elda", async () => {
   const rows = JSON.parse(
     await readFile(new URL("../data/lounges.json", import.meta.url), "utf8"),

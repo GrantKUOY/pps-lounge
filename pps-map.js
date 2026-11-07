@@ -333,7 +333,9 @@ function getDisplayRecord(record) {
     const location = formatLocationDisplay(record.location);
     const terminal = formatTerminalDisplay(record.terminal);
     const openingHours = formatOpeningHoursDisplay(record.openingHours);
-    const conditions = formatConditionsDisplay(record.conditions);
+    // wave2 資料面收斂：pps-records.js 只保留 conditions_excerpt 短摘
+    // （≤200 字元），不再有 conditions 全文，見 data/SCHEMA.md。
+    const conditions = formatConditionsDisplay(record.conditions_excerpt);
     const facilities = record.facilities.map(formatFacilityLabel);
     const countryZh = getCountryZh(record);
     const airportZh = getAirportZh(record);

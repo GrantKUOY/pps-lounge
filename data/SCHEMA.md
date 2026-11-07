@@ -35,6 +35,20 @@
 全文母本保留於正式站快照（`.baseline/index.production.html`）與
 vault 的 `PPS_LOUNGE.csv`，需要核對原文時回母本查。
 
+追加包：repo 根目錄的 `pps-records.js`（extract 管線的 supplemental
+輸入，同時被 `map.html` 直接載入供 `pps-map.js` 顯示）比照收斂——
+每筆紀錄的 `conditions` 全文已改為 `conditions_excerpt` 短摘
+（轉換腳本 `scripts/strip-records-conditions.mjs`，可重跑）。
+`pps-map.js` 的條件顯示改讀 `conditions_excerpt`；extract 的
+identity key 對 supplemental 列改走 `conditions_excerpt` 分支，
+與全文計算出的短摘一致，網址回填與查證欄位保留語意不變。
+守門：`tests/data.test.mjs` 對 `pps-records.js` 全筆斷言無
+`conditions` 欄位、`conditions_excerpt` 存在且 ≤ 200 字元。
+
+註：兩份資料的 `searchText` 搜尋索引仍含小寫化後的條件片段文字
+（與 wave2 主包對 `data/lounges.json` 的處理一致），屬搜尋索引
+而非條件欄位本身；若日後要連索引一併收斂，需另案評估搜尋行為。
+
 | 欄位 | 型別 | 說明 |
 | --- | --- | --- |
 | conditions_excerpt | `null` 或 string（≤ 200 字元） | 由 `scripts/excerpt.mjs` 的 `conditionsExcerpt` 自母本全文產生：以 ` - ` 切段，依序納入至總長不超過 200 字元（含連接符），第一段超限時硬截至 200 字元；無條件內容時為 `null`。前端呈現：熱門據點詳情與貴賓室靜態頁顯示此短摘並標示「節錄，完整條件以官網為準」，非熱門據點只指向官網。 |
