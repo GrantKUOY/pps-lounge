@@ -5,8 +5,11 @@
 //   name slug：小寫、非 [a-z0-9] 字元一律轉連字號、修剪頭尾連字號。
 //   base 超過 60 字元，或發生碰撞時，附加 djb2(name + location) 的
 //   6 碼十六進位後綴（base 先截斷至放得下後綴）；碰撞仍未解時依序
-//   加入 terminal、url、openingHours、conditions 重新雜湊，最後手段
-//   為序號後綴。同一份資料重跑必定產生完全相同的結果。
+//   加入 terminal、url、openingHours、conditions_excerpt 重新雜湊，
+//   最後手段為序號後綴。同一份資料重跑必定產生完全相同的結果。
+//   註：條件欄位原為 conditions 全文，wave2 資料面移除後改用短摘
+//   conditions_excerpt；實測全 1,754 筆無一走到 level 3，改用短摘
+//   不改變任何既有 slug。
 
 export const MAX_SLUG_LENGTH = 60;
 const HASH_LENGTH = 6;
@@ -37,7 +40,7 @@ function hashInput(row, level) {
   const parts = [row?.name ?? "", row?.location ?? ""];
   if (level >= 1) parts.push(row?.terminal ?? "");
   if (level >= 2) parts.push(row?.url ?? "");
-  if (level >= 3) parts.push(row?.openingHours ?? "", row?.conditions ?? "");
+  if (level >= 3) parts.push(row?.openingHours ?? "", row?.conditions_excerpt ?? "");
   return parts.join("|");
 }
 

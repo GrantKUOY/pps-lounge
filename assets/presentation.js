@@ -81,14 +81,15 @@ export function detailHtml(row, now = new Date(), { hot = false, firstParty = nu
   const errorReportLink = reportUrl
     ? `<p><a class="official-link" href="${escapeHtml(reportUrl)}" target="_blank" rel="noreferrer noopener">回報錯誤</a></p>`
     : "";
-  // 非熱門據點不渲染 conditions 全文（版權收斂）：改指向官網，並移除原始英文的 Conditions 區塊。
+  // 版權收斂（wave2 資料面）：資料已不含 conditions 全文，任何路徑都不再
+  // 讀 row.conditions。熱門據點只呈現預算短摘 conditions_excerpt 並標示
+  // 節錄；非熱門據點指向官網。原始英文區塊不再渲染 Conditions 原文。
+  const excerptText = row.conditions_excerpt
+    ? formatConditions(row.conditions_excerpt)
+    : "未提供";
   const conditionsFact = hot
-    ? `<div class="detail-fact"><dt>使用條件</dt><dd>${escapeHtml(formatConditions(row.conditions))}</dd></div>`
+    ? `<div class="detail-fact"><dt>使用條件</dt><dd>${escapeHtml(excerptText)}（節錄，完整條件以 Priority Pass 官網為準）</dd></div>`
     : `<div class="detail-fact"><dt>使用條件</dt><dd>入場條件請查 Priority Pass 官網</dd></div>`;
-  const rawConditions = hot
-    ? `
-      <div class="raw-section"><h3>Conditions</h3><p>${escapeHtml(row.conditions || "Not provided")}</p></div>`
-    : "";
 
   return `<header class="detail-heading">
       <span class="detail-code">${escapeHtml(row.airportCode)}</span>
@@ -104,7 +105,7 @@ export function detailHtml(row, now = new Date(), { hot = false, firstParty = nu
       ${conditionsFact}
     </dl>
     <details class="raw-copy"><summary>查看原始英文</summary>
-      <div class="raw-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></div>${rawConditions}
+      <div class="raw-section"><h3>Opening hours</h3><p>${escapeHtml(row.openingHours || "Not provided")}</p></div>
     </details>
     ${officialLink}${firstPartyLink}${errorReportLink}
     <div data-community-mount></div>

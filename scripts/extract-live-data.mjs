@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { conditionsExcerpt } from "./excerpt.mjs";
 
 const source = process.argv[2];
 const supplementalSource = process.argv[3];
@@ -47,15 +48,23 @@ if (supplementalRows.length !== rows.length) {
   );
 }
 
+// identity key 的條件欄位改用短摘衍生值（wave2）：產出資料已不含
+// conditions 全文，舊產出列只有 conditions_excerpt；快照列與
+// pps-records.js 列有全文。以全文計算出的 excerpt 與舊產出的欄位值
+// 一致，三種來源才能組出相同 key，查證欄位保留與 URL 回填不失效。
 const identityFields = [
   "airportCode",
   "name",
   "location",
   "openingHours",
-  "conditions",
 ];
 const identityKey = (row) =>
-  identityFields.map((field) => row[field] ?? "").join("\0");
+  [
+    ...identityFields.map((field) => row[field] ?? ""),
+    row.conditions != null
+      ? (conditionsExcerpt(row.conditions) ?? "")
+      : (row.conditions_excerpt ?? ""),
+  ].join("\0");
 const supplementalByIdentity = new Map();
 
 for (const row of supplementalRows) {
@@ -177,6 +186,17 @@ for (const row of rows) {
   }
   if (verificationFields.some((field) => row[field] !== null)) {
     preservedVerifiedRows += 1;
+  }
+}
+
+// wave2 資料面收斂：產出只保留 conditions 短摘（conditions_excerpt，
+// 上限 200 字元，規則見 scripts/excerpt.mjs），不含英文全文，確保
+// 日後重產不會把全文帶回公開資料。全文母本保留於 .baseline 正式站
+// 快照與 vault 的 PPS_LOUNGE.csv，需要核對原文時回母本查。
+for (const row of rows) {
+  if ("conditions" in row) {
+    row.conditions_excerpt = conditionsExcerpt(row.conditions);
+    delete row.conditions;
   }
 }
 

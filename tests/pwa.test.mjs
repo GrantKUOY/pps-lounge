@@ -15,9 +15,9 @@ test("PWA 預快取只包含公開靜態資源", () => {
   assert.equal(CACHE_URLS.some((url) => url.startsWith("api/")), false);
 });
 
-test("錯誤回報設定檔列入預快取且快取版本升至 v6", () => {
+test("錯誤回報設定檔列入預快取且快取版本升至 v7", () => {
   assert.ok(CACHE_URLS.includes("pps-error-report-config.js"));
-  assert.equal(CACHE_NAME, "pps-journal-v2-1-public-v6");
+  assert.equal(CACHE_NAME, "pps-journal-v2-1-public-v7");
 });
 
 test("service worker 不處理 admin 與 API navigation", () => {

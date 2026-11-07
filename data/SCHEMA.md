@@ -20,12 +20,29 @@
 | name | string | 據點名稱 |
 | location | string | 位置原文 |
 | openingHours | string | 營業時間原文 |
-| conditions | string | 使用條件英文原文 |
+| conditions | — | **已移除（wave2）**：使用條件英文全文不再寫入產出，見下方「條件欄位（wave2 資料面收斂）」 |
+| conditions_excerpt | `null` 或 string（≤ 200 字元） | 使用條件短摘，見下方「條件欄位（wave2 資料面收斂）」 |
 | facilities | string[] | 設施原文清單 |
 | terminal | string | 航廈 |
 | url | string | Priority Pass 官方頁面（HTTPS） |
 | isAsia / isEurope | boolean | 地區推導旗標 |
 | searchText | string | 搜尋索引文字 |
+
+## 條件欄位（wave2 資料面收斂）
+
+`conditions` 英文全文**不再存在於產出資料**：公開站與 repo 的
+`data/lounges.json` 只保留短摘，任何人下載資料都拿不到全文。
+全文母本保留於正式站快照（`.baseline/index.production.html`）與
+vault 的 `PPS_LOUNGE.csv`，需要核對原文時回母本查。
+
+| 欄位 | 型別 | 說明 |
+| --- | --- | --- |
+| conditions_excerpt | `null` 或 string（≤ 200 字元） | 由 `scripts/excerpt.mjs` 的 `conditionsExcerpt` 自母本全文產生：以 ` - ` 切段，依序納入至總長不超過 200 字元（含連接符），第一段超限時硬截至 200 字元；無條件內容時為 `null`。前端呈現：熱門據點詳情與貴賓室靜態頁顯示此短摘並標示「節錄，完整條件以官網為準」，非熱門據點只指向官網。 |
+
+守門：`npm run validate` 對任一筆出現非空 `conditions` 欄位、
+缺 `conditions_excerpt`、或短摘超過 200 字元都會報錯；
+`scripts/extract-live-data.mjs` 產出前會自動計算短摘並剝除全文，
+重產不會把全文帶回來。
 
 ## 查證三欄骨架（wave1 W2 新增）
 
@@ -45,8 +62,10 @@
 ## 重新產生資料時的保留規則（重要）
 
 執行 `npm run extract` 重新產生 `lounges.json` 時，extract 腳本會以
-identity key（`airportCode`、`name`、`location`、`openingHours`、
-`conditions` 組合）從**舊的** `data/lounges.json` 保留每筆已填的
+identity key（`airportCode`、`name`、`location`、`openingHours`，
+加上條件欄位的短摘衍生值——有全文時以 `conditionsExcerpt` 計算、
+舊產出則直接用其 `conditions_excerpt`，兩者一致）從**舊的**
+`data/lounges.json` 保留每筆已填的
 `last_verified`、`data_source`、`status_flag`，新列則補 `null`。
 因此：
 

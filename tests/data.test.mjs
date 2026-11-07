@@ -2,16 +2,25 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+import { conditionsExcerpt } from "../scripts/excerpt.mjs";
+
+// 與 scripts/extract-live-data.mjs 相同的 identity key 組法（wave2）：
+// 條件欄位以短摘衍生值比對——來源列有全文、以 conditionsExcerpt 計算；
+// 產出列只有 conditions_excerpt 欄位。兩者一致才能互相匹配。
 const identityFields = [
   "airportCode",
   "name",
   "location",
   "openingHours",
-  "conditions",
 ];
 
 function identityKey(row) {
-  return identityFields.map((field) => row[field] ?? "").join("\0");
+  return [
+    ...identityFields.map((field) => row[field] ?? ""),
+    row.conditions != null
+      ? (conditionsExcerpt(row.conditions) ?? "")
+      : (row.conditions_excerpt ?? ""),
+  ].join("\0");
 }
 
 function canonicalizeOfficialUrl(url, airportCode) {
@@ -34,6 +43,31 @@ test("正式資料固定為 1754 筆且必要欄位存在", async () => {
     assert.equal(typeof row.name, "string");
     assert.equal(typeof row.searchText, "string");
     assert.ok(Array.isArray(row.facilities));
+  }
+});
+
+test("資料面不變量（wave2）：全筆無 conditions 全文、excerpt 皆 ≤200 字元或 null", async () => {
+  const rows = JSON.parse(
+    await readFile(new URL("../data/lounges.json", import.meta.url), "utf8"),
+  );
+
+  for (const row of rows) {
+    assert.ok(
+      !("conditions" in row) ||
+        row.conditions == null ||
+        (typeof row.conditions === "string" && !row.conditions.trim()),
+      `${row.airportCode} ${row.name} 不得帶 conditions 全文`,
+    );
+    assert.ok(
+      "conditions_excerpt" in row,
+      `${row.airportCode} ${row.name} 缺 conditions_excerpt 欄位`,
+    );
+    assert.ok(
+      row.conditions_excerpt === null ||
+        (typeof row.conditions_excerpt === "string" &&
+          row.conditions_excerpt.length <= 200),
+      `${row.airportCode} ${row.name} 的 conditions_excerpt 必須 ≤200 字元或 null`,
+    );
   }
 });
 

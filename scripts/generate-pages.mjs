@@ -53,16 +53,12 @@ configureLocalizedNames({
 const slugs = buildLoungeSlugs(rows);
 const rowBySlug = new Map(rows.map((row, index) => [slugs[index], row]));
 
-// 條件節錄：取原始 conditions 前 2 段，沿用主站 formatConditions 的轉換。
-function conditionsExcerpt(value) {
-  if (!value) return "未提供";
-  const text = String(value);
-  let segments;
-  if (text.includes(" - ")) segments = text.split(/\s+-\s+/);
-  else if (text.includes("; ")) segments = text.split(/;\s+/);
-  else segments = text.split(/,\s+(?=[A-Z])/);
-  const picked = segments.map((s) => s.trim()).filter(Boolean).slice(0, 2);
-  return picked.length ? formatConditions(picked.join(" - ")) : "未提供";
+// 條件節錄：資料面已預算 conditions_excerpt（scripts/excerpt.mjs 產生，
+// 上限 200 字元），此處只沿用主站 formatConditions 做顯示轉換，
+// 不再自行切 conditions 原文（資料已無此欄位）。
+function excerptText(row) {
+  if (!row.conditions_excerpt) return "未提供";
+  return formatConditions(row.conditions_excerpt);
 }
 
 const multiline = (text) => escapeHtml(text).replaceAll("\n", "<br>");
@@ -223,7 +219,7 @@ ${masthead}
       <div class="detail-fact"><dt>位置</dt><dd>${escapeHtml(formatLocation(row.location))}</dd></div>
       <div class="detail-fact"><dt>營業時間</dt><dd>${multiline(formatOpeningHours(row.openingHours))}</dd></div>
       <div class="detail-fact"><dt>設施</dt><dd>${escapeHtml(facilities)}</dd></div>
-      <div class="detail-fact"><dt>使用條件（節錄）</dt><dd>${multiline(conditionsExcerpt(row.conditions))}</dd></div>
+      <div class="detail-fact"><dt>使用條件（節錄）</dt><dd>${multiline(excerptText(row))}</dd></div>
     </dl>
     <p class="data-note">條件節錄，完整條件以官網為準。</p>
     ${officialLink(row)}${firstPartyLink(firstPartyFor(row))}

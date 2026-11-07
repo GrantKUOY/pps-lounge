@@ -29,6 +29,27 @@ for (const [index, row] of rows.entries()) {
       errors.push(`row ${index}: invalid url`);
     }
   }
+  // 資料面守門（wave2）：conditions 英文全文不得出現在公開資料中。
+  // 任一筆存在非空 conditions 欄位即視為管線異常（extract 或轉換腳本
+  // 未正確剝除），直接報錯；全文母本保留於 .baseline 快照與 vault CSV。
+  if (typeof row.conditions === "string" && row.conditions.trim()) {
+    errors.push(
+      `row ${index}: conditions must not be present in public data (wave2)`,
+    );
+  }
+  // conditions_excerpt 為公開資料唯一的條件欄位：每筆必須存在，
+  // 值為 null 或長度 ≤ 200 字元的字串（規則見 scripts/excerpt.mjs）。
+  if (!("conditions_excerpt" in row)) {
+    errors.push(`row ${index}: conditions_excerpt is missing`);
+  } else if (
+    row.conditions_excerpt !== null &&
+    (typeof row.conditions_excerpt !== "string" ||
+      row.conditions_excerpt.length > 200)
+  ) {
+    errors.push(
+      `row ${index}: conditions_excerpt must be null or a string of at most 200 chars`,
+    );
+  }
   // 查證三欄骨架（last_verified / data_source / status_flag）：
   // 每筆都必須存在此三欄；缺欄視為資料產生流程異常，直接報錯，
   // 不靜默視為未查證，避免重新產生資料時掉欄而無人察覺。

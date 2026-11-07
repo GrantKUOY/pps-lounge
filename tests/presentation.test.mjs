@@ -19,7 +19,7 @@ const row = {
   terminal: "Terminal 2",
   location: "Airside, Zone D",
   openingHours: "05:00 - 23:00 daily",
-  conditions: "Maximum 3 hour stay",
+  conditions_excerpt: "Maximum 3 hour stay",
   facilities: ["Soft drinks", "Wi-Fi", "Showers", "Flight information"],
   url: "https://www.prioritypass.com/example",
 };
@@ -114,9 +114,30 @@ test("錯誤回報連結：未設定、空字串或 URL 不合法時不顯示且
   }
 });
 
-test("熱門據點詳情維持 conditions 現行呈現", () => {
+test("熱門據點詳情呈現 conditions_excerpt 短摘並標示節錄", () => {
   const html = detailHtml(row, new Date(), { hot: true });
   assert.match(html, /最長可停留 3 小時/);
-  assert.match(html, /<h3>Conditions<\/h3><p>Maximum 3 hour stay<\/p>/);
+  assert.match(html, /（節錄，完整條件以 Priority Pass 官網為準）/);
+  assert.doesNotMatch(html, /<h3>Conditions<\/h3>/);
+  assert.doesNotMatch(html, /Maximum 3 hour stay/);
   assert.doesNotMatch(html, /入場條件請查 Priority Pass 官網/);
+});
+
+test("熱門據點詳情不讀 row.conditions：即使資料帶全文也不渲染長原文", () => {
+  const dirty = {
+    ...row,
+    conditions_excerpt: "Maximum 3 hour stay",
+    conditions:
+      "Maximum 3 hour stay - SECRET LONG TAIL SEGMENT must never render - Another hidden tail clause",
+  };
+  const html = detailHtml(dirty, new Date(), { hot: true });
+  assert.doesNotMatch(html, /SECRET LONG TAIL/);
+  assert.doesNotMatch(html, /hidden tail clause/);
+  assert.doesNotMatch(html, /<h3>Conditions<\/h3>/);
+  assert.match(html, /最長可停留 3 小時/);
+  assert.match(html, /（節錄，完整條件以 Priority Pass 官網為準）/);
+
+  const coldHtml = detailHtml(dirty);
+  assert.doesNotMatch(coldHtml, /SECRET LONG TAIL/);
+  assert.doesNotMatch(coldHtml, /<h3>Conditions<\/h3>/);
 });
