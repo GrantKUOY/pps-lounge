@@ -122,7 +122,7 @@ function formatConditionSegment(segment) {
     .trim();
 
   if (/[A-Za-z][A-Za-z0-9&'(),.\-/:;+ ]{18,}/.test(translated)) {
-    return "另有使用限制，請查看原始英文與官方頁面。";
+    return "另有使用限制，請查看官方頁面。";
   }
   return translated;
 }
